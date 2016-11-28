@@ -1,7 +1,7 @@
 from flask import Flask, request
-import mysql.connector
-from mysql.connector import errorcode
-import time
+#import mysql.connector
+#from mysql.connector import errorcode
+#import time
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -66,28 +66,28 @@ def log_the_user_in(username):
 ##
 # MySQL Connector and query function
 ##
-def getdata(query):
-    msg = ''
-    try:
-        cnx = mysql.connector.connect(**DBCONFIG)
-        cursor = cnx.cursor(buffered=True)
-        if query == '':
-            query = "DESCRIBE DATABASE"
-        cursor.execute(query)
-        for (i, j) in cursor:
-            msg += "{} {}".format(i, j)
-        cursor.close()
-        cnx.close()
-        msg += "The Database is Connected"
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            msg += "Something is wrong with your user name or password"
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            msg += "Database does not exist"
-        else:
-            msg += "DB Error: " + err.msg
-    else:
-        cnx.close()
-        msg += "Connection closed."
-    return msg
-
+#def getdata(query):
+#    msg = ''
+#    try:
+#        cnx = mysql.connector.connect(**DBCONFIG)
+#        cursor = cnx.cursor(buffered=True)
+#        if query == '':
+#            query = "DESCRIBE DATABASE"
+#        cursor.execute(query)
+#        for (i, j) in cursor:
+#            msg += "{} {}".format(i, j)
+#        cursor.close()
+#        cnx.close()
+#        msg += "The Database is Connected"
+#    except mysql.connector.Error as err:
+#        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+#            msg += "Something is wrong with your user name or password"
+#        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+#            msg += "Database does not exist"
+#        else:
+#            msg += "DB Error: " + err.msg
+#    else:
+#        cnx.close()
+#        msg += "Connection closed."
+#    return msg
+#
