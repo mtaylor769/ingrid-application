@@ -1,0 +1,18 @@
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+env_variables:
+  appurl: 'https://storage.googleapis.com/omega-messenger-133010.appspot.com/profile/'
+  appurlmail: 'http://omega-messenger-133010.appspot.com/'
+  token: 'cf02308c614e080009c7fb0c4b19ff8a'
+
+libraries:
+- name: jinja2
+  version: "2.6"
+- name: markupsafe
+  version: "0.15"
+
+handlers:
+- url: .*
+  script: main.app
