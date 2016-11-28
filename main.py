@@ -48,8 +48,8 @@ def hello():
 ##
 # User Profile
 ##
-@app.route('/', methods=["GET"])
-@app.route('/user', methods=["GET"])
+@app.route('/?action=signup', methods=["GET"])
+@app.route('/user/?action=profile', methods=["GET"])
 @app.route('/users/<username>', methods=["POST", "UPDATE", "PATCH"])
 def userprofile(username=None):
     """Return a friendly HTTP greeting."""
