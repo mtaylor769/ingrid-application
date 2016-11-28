@@ -42,10 +42,8 @@ def hello():
                     return render_template('login.html', error=error)
     except KeyError as identifier:
         error = "FormError: " + identifier.message
-    # the code below is executed if the request method
-    # was GET or the credentials were invalid
-    #return "end hello()"
-    return render_template('error.html', error=error)
+        return render_template('error.html', error=error)
+    return "hello method failed."
 
 ##
 # User Profile
@@ -56,7 +54,7 @@ def hello():
 def userprofile(username=None):
     """Return a friendly HTTP greeting."""
     error = None
-    try:
+#    try:
 	retarray = [{
             'formaction': request.args.get('action', ''),
             'email': request.args.get('email', ''),
@@ -72,9 +70,9 @@ def userprofile(username=None):
             'contacts': request.args.get('contacts', '')
         }];
         return render_template('output.html', data=retarray)
-    except KeyError as identifier:
-        error = "FormError: " + identifier.message
-    	return render_template('error.html', error=error)
+#    except KeyError as identifier:
+#        error = "FormError: " + identifier.message
+#    	return render_template('error.html', error=error)
 
 @app.errorhandler(404)
 def page_not_found(e):
