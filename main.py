@@ -50,7 +50,7 @@ def hello():
 ##
 @app.route('/?action=signup', methods=["GET"])
 @app.route('/user/?action=profile', methods=["GET"])
-@app.route('/users/<username>', methods=["POST", "UPDATE", "PATCH"])
+@app.route('/users/<username>', methods=["POST", "UPDATE", "PUT"])
 def userprofile(username=None):
     """Return a friendly HTTP greeting."""
     error = None
