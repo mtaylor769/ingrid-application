@@ -24,6 +24,7 @@ apptoken = 'cf02308c614e080009c7fb0c4b19ff8a'
 # Authentication
 ##
 @app.route('/')
+@app.route('/auth', methods=["POST"])
 def hello():
     """Return a friendly HTTP greeting."""
     error = None
@@ -34,16 +35,47 @@ def hello():
             password = request.args.get('password', '')
             if action & action != '':
                 if valid_login(username, password):
-                    return log_the_user_in(username)
+                    data = log_the_user_in(username)
+                    return render_template('output.html', data=data)
                 else:
                     error = 'Invalid username/password'
+                    return render_template('login.html', error=error)
     except KeyError as identifier:
         error = "FormError: " + identifier.message
     # the code below is executed if the request method
     # was GET or the credentials were invalid
     #return "end hello()"
-    return render_template('login.html', error=error)
+    return render_template('error.html', error=error)
 
+##
+# User Profile
+##
+@app.route('/', methods=["GET"])
+@app.route('/user', methods=["GET"])
+@app.route('/users/<username>', methods=["POST", "UPDATE", "PATCH"])
+def userprofile(username=None):
+    """Return a friendly HTTP greeting."""
+    error = None
+    try:
+	retarray = [
+            'formaction' = request.args.get('action', '')
+            'email' = request.args.get('email', '')
+            'first_name' = request.args.get('first_name', '')
+            'last_name' = request.args.get('last_name', '')
+            'password' = request.args.get('password', '')
+            'organization' = request.args.get('organization', '')
+            'designation' = request.args.get('designation', '')
+            'location' = request.args.get('location', '')
+            'location_latitude' = request.args.get('location_latitude', '')
+            'location_longitude' = request.args.get('location_longitude', '')
+            'profile_picture' = request.args.get('profile_picture', '')
+            'contacts' = request.args.get('profile_picture', '')
+        ];
+        if request.method == 'GET':
+            return render_template('output.html', data=retarray)
+    except KeyError as identifier:
+        error = "FormError: " + identifier.message
+    	return render_template('error.html', error=error)
 
 @app.errorhandler(404)
 def page_not_found(e):
