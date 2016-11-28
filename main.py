@@ -21,7 +21,7 @@ DBCONFIG = {
 apptoken = 'cf02308c614e080009c7fb0c4b19ff8a'
 
 ##
-# Authentication
+# Authentication Login
 ##
 @app.route('/')
 @app.route('/auth', methods=["POST"])
