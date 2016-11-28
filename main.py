@@ -57,20 +57,20 @@ def userprofile(username=None):
     """Return a friendly HTTP greeting."""
     error = None
     try:
-	retarray = [
-            'formaction' = request.args.get('action', '')
-            'email' = request.args.get('email', '')
-            'first_name' = request.args.get('first_name', '')
-            'last_name' = request.args.get('last_name', '')
-            'password' = request.args.get('password', '')
-            'organization' = request.args.get('organization', '')
-            'designation' = request.args.get('designation', '')
-            'location' = request.args.get('location', '')
-            'location_latitude' = request.args.get('location_latitude', '')
-            'location_longitude' = request.args.get('location_longitude', '')
-            'profile_picture' = request.args.get('profile_picture', '')
+	retarray = [{
+            'formaction': request.args.get('action', ''),
+            'email': request.args.get('email', ''),
+            'first_name': request.args.get('first_name', ''),
+            'last_name': request.args.get('last_name', ''),
+            'password': request.args.get('password', ''),
+            'organization': request.args.get('organization', ''),
+            'designation': request.args.get('designation', ''),
+            'location': request.args.get('location', ''),
+            'location_latitude': request.args.get('location_latitude', ''),
+            'location_longitude': request.args.get('location_longitude', ''),
+            'profile_picture': request.args.get('profile_picture', ''),
             'contacts' = request.args.get('profile_picture', '')
-        ];
+        }];
         if request.method == 'GET':
             return render_template('output.html', data=retarray)
     except KeyError as identifier:
