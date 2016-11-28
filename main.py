@@ -1,7 +1,7 @@
-from flask import Flask, request
-#import mysql.connector
-#from mysql.connector import errorcode
-#import time
+from flask import Flask, request, render_template
+import mysql.connector
+from mysql.connector import errorcode
+import time
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -27,18 +27,22 @@ apptoken = 'cf02308c614e080009c7fb0c4b19ff8a'
 def hello():
     """Return a friendly HTTP greeting."""
     error = None
-    if request.method == 'POST':
-        if request.form('action') & request.form['action'] != '':
-            if valid_login(request.form['username'], request.form['password']):
-                return log_the_user_in(request.form['username'])
-            else:
-                error = 'Invalid username/password'
-    else:
-        error = request.form['username']
+    try:
+        if request.method == 'POST':
+            action = request.args.get('action', '')
+            username = request.args.get('username', '')
+            password = request.args.get('password', '')
+            if action & action != '':
+                if valid_login(username, password):
+                    return log_the_user_in(username)
+                else:
+                    error = 'Invalid username/password'
+    except KeyError as identifier:
+        error = "FormError: " + identifier.message
     # the code below is executed if the request method
     # was GET or the credentials were invalid
-    return "end hello()"
-    #return render_template('login.html', error=error)
+    #return "end hello()"
+    return render_template('login.html', error=error)
 
 
 @app.errorhandler(404)
@@ -66,28 +70,28 @@ def log_the_user_in(username):
 ##
 # MySQL Connector and query function
 ##
-#def getdata(query):
-#    msg = ''
-#    try:
-#        cnx = mysql.connector.connect(**DBCONFIG)
-#        cursor = cnx.cursor(buffered=True)
-#        if query == '':
-#            query = "DESCRIBE DATABASE"
-#        cursor.execute(query)
-#        for (i, j) in cursor:
-#            msg += "{} {}".format(i, j)
-#        cursor.close()
-#        cnx.close()
-#        msg += "The Database is Connected"
-#    except mysql.connector.Error as err:
-#        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-#            msg += "Something is wrong with your user name or password"
-#        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-#            msg += "Database does not exist"
-#        else:
-#            msg += "DB Error: " + err.msg
-#    else:
-#        cnx.close()
-#        msg += "Connection closed."
-#    return msg
-#
+def getdata(query):
+    msg = ''
+    try:
+        cnx = mysql.connector.connect(**DBCONFIG)
+        cursor = cnx.cursor(buffered=True)
+        if query == '':
+            query = "DESCRIBE DATABASE"
+        cursor.execute(query)
+        for (i, j) in cursor:
+            msg += "{} {}".format(i, j)
+        cursor.close()
+        cnx.close()
+        msg += "The Database is Connected"
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            msg += "Something is wrong with your user name or password"
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            msg += "Database does not exist"
+        else:
+            msg += "DB Error: " + err.msg
+    else:
+        cnx.close()
+        msg += "Connection closed."
+    return msg
+
