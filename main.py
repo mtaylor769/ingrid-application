@@ -20,7 +20,7 @@ DBCONFIG = {
 
 apptoken = 'cf02308c614e080009c7fb0c4b19ff8a'
 
-###
+##
 # Authentication Login
 ##
 @app.route('/')
@@ -71,8 +71,7 @@ def userprofile(username=None):
             'profile_picture': request.args.get('profile_picture', ''),
             'contacts': request.args.get('contacts', '')
         }];
-        if request.method == 'GET':
-            return render_template('output.html', data=retarray)
+        return render_template('output.html', data=retarray)
     except KeyError as identifier:
         error = "FormError: " + identifier.message
     	return render_template('error.html', error=error)
