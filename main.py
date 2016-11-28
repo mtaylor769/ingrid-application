@@ -55,7 +55,7 @@ def userprofile(username=None):
     """Return a friendly HTTP greeting."""
     error = None
 #    try:
-    retarray = [{
+    retarray = {
         'formaction': request.args.get('action', ''),
         'email': request.args.get('email', ''),
         'first_name': request.args.get('first_name', ''),
@@ -68,7 +68,7 @@ def userprofile(username=None):
         'location': [{'lat': request.args.get('location_latitude'), 'lon': request.args.get('location_longitude', '')}],
         'profile_picture': request.args.get('profile_picture', ''),
         'contacts': request.args.get('contacts', '')
-    }];
+    };
     return render_template('output.html', data=retarray)
 #    except KeyError as identifier:
 #        error = "FormError: " + identifier.message
