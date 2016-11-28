@@ -65,11 +65,11 @@ def userprofile(username=None):
             'password': request.args.get('password', ''),
             'organization': request.args.get('organization', ''),
             'designation': request.args.get('designation', ''),
-            'location': request.args.get('location', ''),
             'location_latitude': request.args.get('location_latitude', ''),
             'location_longitude': request.args.get('location_longitude', ''),
+            'location': [{'lat': request.args.get('location_latitude'), 'lon': request.args.get('location_longitude', '')}],
             'profile_picture': request.args.get('profile_picture', ''),
-            'contacts' = request.args.get('profile_picture', '')
+            'contacts': request.args.get('contacts', '')
         }];
         if request.method == 'GET':
             return render_template('output.html', data=retarray)
