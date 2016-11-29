@@ -34,6 +34,7 @@ apptoken = 'cf02308c614e080009c7fb0c4b19ff8a'
 ###
 @app.route('/')
 def index():
+    import flask
     if 'credentials' not in flask.session:
         return flask.redirect(flask.url_for('oauth2callback'))
     credentials = client.OAuth2Credentials.from_json(flask.session['credentials'])
@@ -48,6 +49,7 @@ def index():
 
 @app.route('/oauth2callback')
 def oauth2callback():
+    import flask
     flow = client.flow_from_clientsecrets(
         'client_secrets.json',
         scope='https://www.googleapis.com/auth/drive.metadata.readonly',
