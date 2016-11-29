@@ -9,6 +9,7 @@ app.config['GOOGLE_LOGIN_REDIRECT_SCHEME'] = "https"
 # Note: We don't need to call run() since our application is embedded within
 # the App Engine WSGI application server.
 #import json
+# @author: Mike Taylor
 
 DBCONFIG = {
     'host': '127.0.0.1',
@@ -20,9 +21,10 @@ DBCONFIG = {
 
 apptoken = 'cf02308c614e080009c7fb0c4b19ff8a'
 
-##
-# Authentication Login
-##
+"""
+Authentication Login
+
+"""
 @app.route('/')
 @app.route('/auth', methods=["POST"])
 def hello():
@@ -45,13 +47,21 @@ def hello():
         return render_template('error.html', error=error)
     return "hello method failed."
 
-##
-# User Profile
+###
+# Users
 ##
 @app.route('/user/', methods=["GET"])
-@app.route('/users/<username>')
-def userprofile(username=None):
-    """Return a friendly HTTP greeting."""
+@app.route('/users', methods=["GET"]) # List of users
+@app.route('/users/<int:user_id>')
+def userprofile(user_id=None):
+    """
+    Returns:
+        user_profile
+    Args:
+        POST   /user?action=signup      - v1 user registration
+        POST   /user?action=profile     - v1 user update
+        PATCH  /users/<user_id>         - v2 user update
+    """
     error = None
 #    try:
     retarray = {
@@ -64,15 +74,234 @@ def userprofile(username=None):
         'designation': request.args.get('designation', ''),
         'location_latitude': request.args.get('location_latitude', ''),
         'location_longitude': request.args.get('location_longitude', ''),
-        'location': [{'lat': request.args.get('location_latitude'), 'lon': request.args.get('location_longitude', '')}],
+        'location': [{
+            'lat': request.args.get('location_latitude', ''),
+            'lon': request.args.get('location_longitude', '')
+        }],
         'profile_picture': request.args.get('profile_picture', ''),
         'contacts': request.args.get('contacts', '')
-    };
+    }
     return render_template('output.html', data=retarray)
 #    except KeyError as identifier:
 #        error = "FormError: " + identifier.message
 #    	return render_template('error.html', error=error)
 
+##
+#  Search
+##
+@app.route('/search')
+def search():
+    """
+    Returns:
+        user_profile list
+    Args:
+        POST   /search?action=general       - v1 general user search
+        POST   /search?action=advanced      - v1 advanced user search
+        GET    /users                       - v2 user list
+
+    Returns:
+        directory list
+    Args:
+        POST   /search?action=directory     - v1 general group search
+        GET    /directories                 - v2 group list
+    """
+    retarray = {}
+    return render_template('list.html', data=retarray)
+
+###
+#  Contacts
+##
+@app.route('/contacts')
+@app.route('/users/<int:user_id>/contacts/')
+@app.route('/users/<int:user_id>/contacts/<int:contact_id>')
+@app.route('/users/<int:user_id>/contacts/<int:contact_id>/block')
+@app.route('/users/<int:user_id>/contacts/<int:contact_id>/unblock')
+def contacts(user_id=None, contact_id=None):
+    """
+    Returns:
+        contact list
+    Args:
+        POST   /contacts/?action=get        - v1 admin general contact search
+        GET    /users/<user_id>/contacts    - v2 admin user contact list
+            TODO: resolve this route with client
+        GET    /users/<user_id>             - v2 admin user edit (SEE: Users above)
+
+    Returns:
+        status message
+    Args:
+        POST   /contacts/?action=invite     - v1 user invitation
+        POST   /users/<user_id>/contacts    - v2 admin user contact list
+            TODO: add 'invite' ?
+
+        POST   /contacts/?action=remove     - v1 user contact delete
+        DELETE /users/<user_id>/contacts/<contact_id>  - v2 user contact delete
+
+        POST   /contacts?action=block       - v1 block user contact
+        POST   /users/<user_id>/contacts/<contact_id>/block  - v2 block user contact
+
+        POST   /contacts?action=unblock     - v1 unblock user contact
+        POST   /users/<user_id>/contacts/<contact_id>/unblock  - v2 unblock user contact
+    """
+    retarray = {}
+    return render_template('list.html', data=retarray)
+
+##
+#  Groups
+##
+@app.route('/group')
+@app.route('/groups')
+@app.route('/groups/<int:group_id>')
+@app.route('/groups/<int:group_id>/members')
+@app.route('/groups/<int:group_id>/members/<int:user_id>')
+def groups(group_id=None, user_id=None):
+    """
+    Returns:
+        group list
+    Args:
+        POST   /search?action=group         - v1 general group search
+        POST   /groups/?action=get          - v1 admin general contact search
+        GET    /groups/?action=getmembers&group_id=<group_id>  - v1 group member list
+        GET    /groups/<group_id>/members   - v2 group member list
+
+    Returns:
+        status message
+    Args:
+        GET    /groups/?action=invite&group_id=<group_id>  - v1 group invite
+        GET    /groups/?action=join&group_id=<group_id>    - v1 group join
+        POST   /groups/[group_id]/members                  - v2 group invite / join
+            TODO: add 'invite'/'join' and user_id ***
+
+        POST   /groups/?action=leave&group_id=<group_id>&user_id=<user_id>  - v1 leave group
+        DELETE /groups/[group_id]/members/[user_id]        - v2 leave group
+
+        POST  /groups/?action=removemember&group_id=<group_id>&user_id=<user_id>
+            - v1 remove group member
+        DELETE /groups/<group_id>/members/<user_id>        - v2 remove group member
+
+    Returns:
+        group
+    Args:
+        POST   /groups/?action=create       - v1 group create
+        POST   /groups/                     - v2 group create
+            TODO: resolve this URL
+
+        POST   /groups/?action=update       - v1 update group
+        PATCH  /groups/<group_id>           - v2 update group
+            TODO: resolve this URL
+
+        POST   /groups/?action=changeowner&group_id=<group_id>&owner_id=<user_id> - v1 change owner
+        PATCH  /groups/<group_id>
+            TODO: add owner_id ?
+
+    """
+    retarray = {}
+    return render_template('list.html', data=retarray)
+
+##
+#  Directories
+##
+@app.route('/directories')
+@app.route('/directories/')
+@app.route('/directories/<directory_id>/members')
+def directories(directory_id=None, user_id=None):
+    """
+    Returns:
+        directory list
+    Args:
+        POST   /directories/?action=get          - v1 admin general contact search
+        GET    /directories                      - v2 directory list
+
+    Returns:
+        directory member list
+    Args:
+        GET   /directories/?action=getmembers&directory_id=<directory_id> - v1 directory member list
+        GET   /directories/<directory_id>/members  - v2 directory member list
+
+    Returns:
+        status message
+    Args:
+        POST /directories/?action=join&directory_id=<directory_id>  - v1 join directory
+        POST /directories/?action=verify&directory_id=<directory_id> - v1 join directory -deprecated
+        POST /directories/[directory_id]/members                     - v2 join directory
+            TODO: add 'invite'/'join' and user_id
+
+        POST /directories/?action=leave&directory_id=<directory_id>&user_id=<member_id>
+            - v1 leave group
+        DELETE /directories/<directory_id>/members/<member_id>        - v2 leave group
+            TODO: switch user_id and member_id ?
+
+    """
+    retarray = {}
+    return render_template('list.html', data=retarray)
+
+##
+#  Notifications (Invitations and Updates)
+##
+@app.route('/notifications')
+@app.route('/notifications/')
+@app.route('/notifications/<msg_id>')
+@app.route('/invitations')
+@app.route('/invitations/<msg_id>')
+@app.route('/updates')
+@app.route('/updates/<msg_id>')
+def notifications(msg_id=None):
+    """
+    Returns:
+        invitation list
+    Args:
+        POST   /notifications/?action=invitations  - v1 invitation list
+        GET    /invitations                        - v2 invitation list
+
+    Returns;
+        invitation
+    Args:
+        POST   /notifications/?action=read&id=<invitation_id>  - v1 read invitation
+        GET    /invitations/<invitation_id>        - v2 read invitation
+
+    Returns:
+        status message
+    Args:
+        POST   /notifications/?action=accept&invitation_id=<invitation_id>
+            - v1 accept invitation
+        POST   /notifications/?action=reject&invitation_id=<invitation_id>
+            - v1 reject invitation
+        PATCH /invitations/<invitation_id>         - v2 accept / reject notification
+            TODO: add action?
+
+    Returns:
+        updates list
+    Args:
+        POST   /notifications/?action=updates      - v1 updates list
+        GET    /updates                            - v2 updates list
+
+    """
+    retarray = {}
+    return render_template('list.html', data=retarray)
+
+##
+#  Settings
+##
+@app.route('/settings')
+@app.route('/settings/')
+def settings(directory_id=None, user_id=None):
+    """
+    Returns:
+        settings model
+    Args:
+        POST   /settings/?action=get&user_id=<user_id>     - v1 get settings
+        POST   /settings/                                  - v2 get settings
+
+        POST   /settings/?action=update&user_id=<user_id>  - v1 update settings
+        POST   /settings/?action=changeemail&user_id=<user_id>
+            - v1 update settings -deprecated
+        PATCH /settings                                    - v2 update settings
+    """
+    retarray = {}
+    return render_template('list.html', data=retarray)
+
+##
+#  404 NOT FOUND
+##
 @app.errorhandler(404)
 def page_not_found(e):
     """Return a custom 404 error."""
@@ -80,6 +309,11 @@ def page_not_found(e):
 
 ##
 # User Defined Handler Functions
+##
+
+
+##
+# Login page handler Functions
 ##
 def valid_login(username, password):
     username = username
