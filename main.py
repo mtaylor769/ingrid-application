@@ -5,8 +5,6 @@ import uuid
 import time
 import json
 
-from apiclient import discovery
-
 app = Flask(__name__)
 #app.config['DEBUG'] = True
 app.config['GOOGLE_LOGIN_REDIRECT_SCHEME'] = "https"
@@ -36,6 +34,7 @@ def index():
     import flask
     import httplib2
     from oauth2client import client
+    from apiclient import discovery
     if 'credentials' not in flask.session:
         return flask.redirect(flask.url_for('oauth2callback'))
     credentials = client.OAuth2Credentials.from_json(flask.session['credentials'])
