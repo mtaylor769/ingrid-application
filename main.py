@@ -4,8 +4,9 @@ from mysql.connector import errorcode
 import uuid
 import time
 import json
-from apiclient import discovery
+
 from oauth2client import client
+from apiclient import discovery
 
 app = Flask(__name__)
 #app.config['DEBUG'] = True
