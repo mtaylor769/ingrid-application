@@ -4,7 +4,6 @@ from mysql.connector import errorcode
 import uuid
 import time
 import json
-import httplib2
 from apiclient import discovery
 from oauth2client import client
 
@@ -35,6 +34,7 @@ apptoken = 'cf02308c614e080009c7fb0c4b19ff8a'
 @app.route('/')
 def index():
     import flask
+    import httplib2
     if 'credentials' not in flask.session:
         return flask.redirect(flask.url_for('oauth2callback'))
     credentials = client.OAuth2Credentials.from_json(flask.session['credentials'])
