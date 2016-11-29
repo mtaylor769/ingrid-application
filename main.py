@@ -1,15 +1,23 @@
 from flask import Flask, request, render_template
 import mysql.connector
 from mysql.connector import errorcode
+import uuid
 import time
+import json
+import httplib2
+from apiclient import discovery
+from oauth2client import client
 
 app = Flask(__name__)
-app.config['DEBUG'] = True
+#app.config['DEBUG'] = True
 app.config['GOOGLE_LOGIN_REDIRECT_SCHEME'] = "https"
+if __name__ == '__main__':
+    app.secret_key = str(uuid.uuid4())
+    app.debug = True
+
 # Note: We don't need to call run() since our application is embedded within
 # the App Engine WSGI application server.
-#import json
-# @author: Mike Taylor
+# Author: Mike Taylor
 
 DBCONFIG = {
     'host': '127.0.0.1',
@@ -21,32 +29,38 @@ DBCONFIG = {
 
 apptoken = 'cf02308c614e080009c7fb0c4b19ff8a'
 
-"""
-Authentication Login
-
-"""
+###
+# oAuth2 Authentication Login
+###
 @app.route('/')
-@app.route('/auth', methods=["POST"])
-def hello():
-    """Return a friendly HTTP greeting."""
-    error = None
-    try:
-        if request.method == 'POST':
-            action = request.args.get('action', '')
-            username = request.args.get('username', '')
-            password = request.args.get('password', '')
-            if action & action != '':
-                if valid_login(username, password):
-                    data = log_the_user_in(username)
-                    return render_template('output.html', data=data)
-                else:
-                    error = 'Invalid username/password'
-                    return render_template('login.html', error=error)
-    except KeyError as identifier:
-        error = "FormError: " + identifier.message
-        return render_template('error.html', error=error)
-    return "hello method failed."
+def index():
+    if 'credentials' not in flask.session:
+        return flask.redirect(flask.url_for('oauth2callback'))
+    credentials = client.OAuth2Credentials.from_json(flask.session['credentials'])
+    if credentials.access_token_expired:
+        return flask.redirect(flask.url_for('oauth2callback'))
+    else:
+        http_auth = credentials.authorize(httplib2.Http())
+        drive_service = discovery.build('drive', 'v2', http_auth)
+        files = drive_service.files().list().execute()
+        return json.dumps(files)
 
+
+@app.route('/oauth2callback')
+def oauth2callback():
+    flow = client.flow_from_clientsecrets(
+        'client_secrets.json',
+        scope='https://www.googleapis.com/auth/drive.metadata.readonly',
+        redirect_uri=flask.url_for('oauth2callback', _external=True),
+        include_granted_scopes=True)
+    if 'code' not in flask.request.args:
+        auth_uri = flow.step1_get_authorize_url()
+        return flask.redirect(auth_uri)
+    else:
+        auth_code = flask.request.args.get('code')
+        credentials = flow.step2_exchange(auth_code)
+        flask.session['credentials'] = credentials.to_json()
+        return flask.redirect(flask.url_for('index'))
 ###
 # Users
 ##
