@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
 # Note: We don't need to call run() since our application is embedded within
 # the App Engine WSGI application server.
-# Author: Mike Taylor
+## Author: Mike Taylor
 
 DBCONFIG = {
     'host': '127.0.0.1',
