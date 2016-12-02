@@ -126,8 +126,29 @@ def search():
         POST   /search?action=directory     - v1 general group search
         GET    /directories                 - v2 group list
     """
-    retarray = {}
-    return render_template('list.html', data=retarray)
+    error = None
+    try:
+        action = request.args.get('action', 'search')
+        user_id = request.args.get('user_id', '')
+        if request.method == "POST" | request.method == "GET":
+            if action != '':
+                if action == "general":
+                    return render_template('output.html', data=getdata())
+                elif action == "advanced":
+                    return render_template('output.html', data=getdata())
+                elif action == "directory":
+                    return render_template('output.html', data=getdata())
+            else:
+                if user_id != None:
+                    data = user_update()
+                else: data = status_message('fail', "no user_id")
+            return render_template('output.html', data=data)
+        else:
+            return request.method + " requested"
+    except KeyError as identifier:
+        error = "FormError: " + identifier.message
+        return render_template('error.html', error=error)
+
 
 ###
 #  Contacts
