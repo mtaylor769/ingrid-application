@@ -397,7 +397,7 @@ def user_update():
     return status_message("success", "user_id: 1 updated")
 
 def status_message(status=None, message=None):
-    return {'status': status | "no status", 'message': message | "no message"}
+    return {'status': status, 'message': message}
 
 ##
 # MySQL Connector and query function
