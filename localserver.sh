@@ -2,10 +2,10 @@
 # Use this if you want your data to be persisted across reboots. You can
 # also version the data by changing the ID variable.
 ID="a001"
-DATASTORE_PATH="$HOME/.appengine/python-gae-quickstart/Datastore/$ID"
-BLOBSTORE_PATH="$HOME/.appengine/python-gae-quickstart/Blobstore/$ID"
+DATASTORE_PATH="$HOME/.appengine/ingrid-application/Datastore/$ID"
+BLOBSTORE_PATH="$HOME/.appengine/ingrid-application/Blobstore/$ID"
 #APP_PATH="$HOME/Projects/api-inkit-io"
-APP_PATH="$HOME/Documents/Development/GIT/python-gae-quickstart"
+APP_PATH="$HOME/Documents/Development/GIT/ingrid-application/default"
 
 mkdir -p "$DATASTORE_PATH"
 mkdir -p "$BLOBSTORE_PATH"

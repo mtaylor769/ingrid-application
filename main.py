@@ -31,6 +31,10 @@ apptoken = 'cf02308c614e080009c7fb0c4b19ff8a'
 ##
 @app.route('/')
 def index():
+    return "logged in"
+    #return flask.redirect(flask.url_for('login'))
+
+'''
     import flask
     import httplib2
     from oauth2client import client
@@ -65,11 +69,13 @@ def oauth2callback():
         credentials = flow.step2_exchange(auth_code)
         flask.session['credentials'] = credentials.to_json()
         return flask.redirect(flask.url_for('index'))
+'''
+
 ###
 # Users
 ##
 @app.route('/user/', methods=["GET"])
-@app.route('/users', methods=["GET"]) # List of users
+@app.route('/users/', methods=["GET"]) # List of users
 @app.route('/users/<int:user_id>')
 def userprofile(user_id=None):
     """
@@ -81,28 +87,25 @@ def userprofile(user_id=None):
         PATCH  /users/<user_id>         - v2 user update
     """
     error = None
-#    try:
-    retarray = {
-        'formaction': request.args.get('action', ''),
-        'email': request.args.get('email', ''),
-        'first_name': request.args.get('first_name', ''),
-        'last_name': request.args.get('last_name', ''),
-        'password': request.args.get('password', ''),
-        'organization': request.args.get('organization', ''),
-        'designation': request.args.get('designation', ''),
-        'location_latitude': request.args.get('location_latitude', ''),
-        'location_longitude': request.args.get('location_longitude', ''),
-        'location': [{
-            'lat': request.args.get('location_latitude', ''),
-            'lon': request.args.get('location_longitude', '')
-        }],
-        'profile_picture': request.args.get('profile_picture', ''),
-        'contacts': request.args.get('contacts', '')
-    }
-    return render_template('output.html', data=retarray)
-#    except KeyError as identifier:
-#        error = "FormError: " + identifier.message
-#    	return render_template('error.html', error=error)
+    try:
+        action = request.args.get('action', '')
+        user_id = request.args.get('user_id', '')
+        if request.method == "GET":
+            if action != '':
+                if action == "signup":
+                    return render_template('output.html', data = user_signup())
+                elif action == "profile":
+                    return render_template('output.html', data = user_update())
+            else:
+                if user_id != None:
+                    data = user_update()
+                else: data = {'status': 'fail', 'message': "no user_id"}
+            return render_template('output.html', data=data)
+        else:
+            return request.method + " requested"
+    except KeyError as identifier:
+        error = "FormError: " + identifier.message
+    	return render_template('error.html', error=error)
 
 ##
 #  Search
@@ -344,6 +347,49 @@ def log_the_user_in(username):
     retarray = {
         'auth_token': apptoken,
         'expires': expiration
+    }
+    return retarray
+
+def user_signup():
+    retarray = {
+        'app_action': 'user_signup',
+        'id': request.args.get('id', 'dafault_id'),
+        'user_id': request.args.get('user_id', 'default_user_id'),
+        'email': request.args.get('email', 'default_email'),
+        'first_name': request.args.get('first_name', 'default_first_name'),
+        'last_name': request.args.get('last_name', 'default_last_name'),
+        'password': request.args.get('password', 'default_password'),
+        'organization': request.args.get('organization', 'default orgainization'),
+        'designation': request.args.get('designation', 'default deignation'),
+        'location_latitude': request.args.get('location_latitude', 'location_latitude'),
+        'location_longitude': request.args.get('location_longitude', 'location_longitude'),
+        'location': [{
+            'lat': request.args.get('location_latitude', 'location_latitude'),
+            'lon': request.args.get('location_longitude', 'location_longitude')
+        }],
+        'profile_picture': request.args.get('profile_picture', ''),
+        'contacts': request.args.get('contacts', '')
+    }
+
+def user_update():
+    retarray = {
+        'app_action': 'user_update',
+        'id': 'dafault_id',
+        'user_id': request.args.get('user_id', 'default_user_id'),
+        'email': request.args.get('email', 'default_email'),
+        'first_name': request.args.get('first_name', 'default_first_name'),
+        'last_name': request.args.get('last_name', 'default_last_name'),
+        'password': request.args.get('password', 'default_password'),
+        'organization': request.args.get('organization', 'default orgainization'),
+        'designation': request.args.get('designation', 'default deignation'),
+        'location_latitude': request.args.get('location_latitude', 'location_latitude'),
+        'location_longitude': request.args.get('location_longitude', 'location_longitude'),
+        'location': [{
+            'lat': request.args.get('location_latitude', 'location_latitude'),
+            'lon': request.args.get('location_longitude', 'location_longitude')
+        }],
+        'profile_picture': request.args.get('profile_picture', ''),
+        'contacts': request.args.get('contacts', '')
     }
     return retarray
 
