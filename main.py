@@ -90,22 +90,22 @@ def userprofile(user_id=None):
     try:
         action = request.args.get('action', '')
         user_id = request.args.get('user_id', '')
-        if request.method == "GET":
+        if request.method == "POST" | request.method == "GET":
             if action != '':
                 if action == "signup":
-                    return render_template('output.html', data = user_signup())
+                    return render_template('output.html', data=user_signup())
                 elif action == "profile":
-                    return render_template('output.html', data = user_update())
+                    return render_template('output.html', data=user_update())
             else:
                 if user_id != None:
                     data = user_update()
-                else: data = {'status': 'fail', 'message': "no user_id"}
+                else: data = status_message('fail', "no user_id")
             return render_template('output.html', data=data)
         else:
             return request.method + " requested"
     except KeyError as identifier:
         error = "FormError: " + identifier.message
-    	return render_template('error.html', error=error)
+        return render_template('error.html', error=error)
 
 ##
 #  Search
@@ -370,28 +370,13 @@ def user_signup():
         'profile_picture': request.args.get('profile_picture', ''),
         'contacts': request.args.get('contacts', '')
     }
+    return retarray
 
 def user_update():
-    retarray = {
-        'app_action': 'user_update',
-        'id': 'dafault_id',
-        'user_id': request.args.get('user_id', 'default_user_id'),
-        'email': request.args.get('email', 'default_email'),
-        'first_name': request.args.get('first_name', 'default_first_name'),
-        'last_name': request.args.get('last_name', 'default_last_name'),
-        'password': request.args.get('password', 'default_password'),
-        'organization': request.args.get('organization', 'default orgainization'),
-        'designation': request.args.get('designation', 'default deignation'),
-        'location_latitude': request.args.get('location_latitude', 'location_latitude'),
-        'location_longitude': request.args.get('location_longitude', 'location_longitude'),
-        'location': [{
-            'lat': request.args.get('location_latitude', 'location_latitude'),
-            'lon': request.args.get('location_longitude', 'location_longitude')
-        }],
-        'profile_picture': request.args.get('profile_picture', ''),
-        'contacts': request.args.get('contacts', '')
-    }
-    return retarray
+    return status_message("success", "user_id: 1 updated")
+
+def status_message(status=None, message=None):
+    return {'status': status | "no status", 'message': message | "no message"}
 
 ##
 # MySQL Connector and query function
