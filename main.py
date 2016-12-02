@@ -90,7 +90,7 @@ def userprofile(user_id=None):
     try:
         action = request.args.get('action', '')
         user_id = request.args.get('user_id', '')
-        if request.method == "POST" | request.method == "GET":
+        if request.method == "GET":
             if action != '':
                 if action == "signup":
                     return render_template('output.html', data=user_signup())
