@@ -100,7 +100,7 @@ def userprofile(user_id=None):
                     return render_template('output.html', data=user_update())
             else:
                 if user_id != None:
-                    data = user_update()
+                    data = get_user(user_id)
                 else: data = status_message('fail', "no user_id")
             return render_template('output.html', data=data)
         else:
@@ -401,6 +401,13 @@ def user_update():
 def status_message(status=None, message=None):
     return {'status': status, 'message': message}
 
+def get_user(user_id=None):
+    if user_id is None:
+        return
+    else:
+        q = "SELECT * FROM findme.tbl_users WHERE id='" + user_id +"'"
+        return getdata(q)
+
 ##
 # MySQL Connector and query function
 ##
@@ -412,19 +419,20 @@ DBCONFIG = {
     'raise_on_warnings': True
 }
 
-def getdata(query):
+def getdata(sql=None):
     msg = ''
     try:
         cnx = mysql.connector.connect(**DBCONFIG)
         cursor = cnx.cursor(buffered=True)
-        msg = "The Database is connected. Executing Query..."
-        if query == '':
-            query = "SHOW TABLES"
-        cursor.execute(query)
-        msg += "\nQuery Executed. Result:"
+        msg = "The Database is connected."
+        if sql is None:
+            sql = "SHOW TABLES"
+        print "\nQuery: " + sql
+        cursor.execute(sql)
+        msg += "\nQuery Result:"
         print cursor
-        #for (i, j) in cursor:
-        #    msg += "{} {}".format(i, j)
+        for (i, j) in cursor:
+            msg += "\n{} {}".format(i, j)
         cursor.close()
         msg += "\nThe Database cursor is closed."
     except mysql.connector.Error as err:
