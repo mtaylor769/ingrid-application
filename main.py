@@ -4,10 +4,19 @@ from mysql.connector import errorcode
 import uuid
 import time
 import json
+#from googleapiclient.discovery import build
+#from oauth2client.client import GoogleCredentials
+
+#credentials = GoogleCredentials.get_application_default()
+#service = build('compute', 'v1', credentials=credentials)
+
+PROJECT = 'ingrid-application'
+ZONE = 'us-central1'
 
 app = Flask(__name__)
-#app.config['DEBUG'] = True
+app.config['DEBUG'] = True
 app.config['GOOGLE_LOGIN_REDIRECT_SCHEME'] = "https"
+app.config['GOOGLE_APPLICATION_CREDENTIALS'] = "./ingrid-application-f7e95ac782cc.json"
 if __name__ == '__main__':
     app.secret_key = str(uuid.uuid4())
     app.debug = True
@@ -16,14 +25,6 @@ if __name__ == '__main__':
 # the App Engine WSGI application server.
 ## Author: Mike Taylor
 
-DBCONFIG = {
-    'host': '127.0.0.1',
-    'user': 'root',
-    'password': '',
-    'database': 'findme',
-    'raise_on_warnings': True
-}
-
 apptoken = 'cf02308c614e080009c7fb0c4b19ff8a'
 
 ###
@@ -31,7 +32,8 @@ apptoken = 'cf02308c614e080009c7fb0c4b19ff8a'
 ##
 @app.route('/')
 def index():
-    return "logged in"
+    data = getdata('')
+    return render_template('output.html', data=data)
     #return flask.redirect(flask.url_for('login'))
 
 '''
@@ -133,11 +135,11 @@ def search():
         if request.method == "POST" | request.method == "GET":
             if action != '':
                 if action == "general":
-                    return render_template('output.html', data=getdata())
+                    return render_template('output.html', data=getdata(''))
                 elif action == "advanced":
-                    return render_template('output.html', data=getdata())
+                    return render_template('output.html', data=getdata(''))
                 elif action == "directory":
-                    return render_template('output.html', data=getdata())
+                    return render_template('output.html', data=getdata(''))
             else:
                 if user_id != None:
                     data = user_update()
@@ -402,28 +404,38 @@ def status_message(status=None, message=None):
 ##
 # MySQL Connector and query function
 ##
+DBCONFIG = {
+    'host': '127.0.0.1',
+    'user': 'dbuser',
+    'password': 'MySQL123!',
+    'database': 'findme',
+    'raise_on_warnings': True
+}
+
 def getdata(query):
     msg = ''
     try:
         cnx = mysql.connector.connect(**DBCONFIG)
         cursor = cnx.cursor(buffered=True)
+        msg = "The Database is connected. Executing Query..."
         if query == '':
-            query = "DESCRIBE DATABASE"
+            query = "SHOW TABLES"
         cursor.execute(query)
-        for (i, j) in cursor:
-            msg += "{} {}".format(i, j)
+        msg += "\nQuery Executed. Result:"
+        print cursor
+        #for (i, j) in cursor:
+        #    msg += "{} {}".format(i, j)
         cursor.close()
-        cnx.close()
-        msg += "The Database is Connected"
+        msg += "\nThe Database cursor is closed."
     except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            msg += "Something is wrong with your user name or password"
+            msg += "\nSomething is wrong with your user name or password"
         elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            msg += "Database does not exist"
+            msg += "\nDatabase does not exist"
         else:
-            msg += "DB Error: " + err.msg
+            msg += "\n General DB Error: " + err.msg
     else:
         cnx.close()
-        msg += "Connection closed."
+        msg += "\nThe Database is disconnected."
     return msg
 
