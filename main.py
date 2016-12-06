@@ -14,11 +14,11 @@ service = build('compute', 'v1', credentials=credentials)
 '''
 PROJECT = 'ingrid-application'
 ZONE = 'us-central1'
-apptoken = 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
+#apptoken = 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
-app.secret_key = apptoken
+app.secret_key = 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
 app.config['GOOGLE_LOGIN_REDIRECT_SCHEME'] = "https"
 app.config['GOOGLE_APPLICATION_CREDENTIALS'] = "./ingrid-application-f7e95ac782cc.json"
 if __name__ == '__main__':
@@ -51,9 +51,10 @@ def index():
         #return flask.redirect('https://www.getpostman.com/oauth2/callback')
     else:
         http_auth = credentials.authorize(httplib2.Http())
-        apiservice = discovery.build('cloud-platform', 'v2', http_auth)
-        files = apiservice.files().list().execute()
-        return json.dumps(files)
+        apiservice = discovery.build('appengine', 'v1', http_auth)
+        #.files().list().execute()
+        print apiservice
+        return json.dumps("")
 
 
 @app.route('/oauth2callback')
@@ -63,7 +64,12 @@ def oauth2callback():
     from oauth2client import client
     flow = client.flow_from_clientsecrets(
         'client_secrets.json',
-        scope='https://www.googleapis.com/auth/cloud-platform.read-only',
+        scope=[
+            #'https://www.googleapis.com/auth/drive.appdata',
+            #'https://www.googleapis.com/auth/cloud-platform',
+            'https://www.googleapis.com/discovery/v1/appengine.getRest',
+            'https://www.googleapis.com/auth/plus.login'
+        ],
         redirect_uri=flask.url_for('oauth2callback', _external=True))#,
         #include_granted_scopes=True)
     if 'code' not in flask.request.args:
