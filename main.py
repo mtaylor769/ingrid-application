@@ -4,17 +4,21 @@ from mysql.connector import errorcode
 import uuid
 import time
 import json
-#from googleapiclient.discovery import build
-#from oauth2client.client import GoogleCredentials
+import httplib2
+'''
+from googleapiclient.discovery import build
+from oauth2client.client import GoogleCredentials
 
-#credentials = GoogleCredentials.get_application_default()
-#service = build('compute', 'v1', credentials=credentials)
-
+credentials = GoogleCredentials.get_application_default()
+service = build('compute', 'v1', credentials=credentials)
+'''
 PROJECT = 'ingrid-application'
 ZONE = 'us-central1'
+apptoken = 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
+app.secret_key = apptoken
 app.config['GOOGLE_LOGIN_REDIRECT_SCHEME'] = "https"
 app.config['GOOGLE_APPLICATION_CREDENTIALS'] = "./ingrid-application-f7e95ac782cc.json"
 if __name__ == '__main__':
@@ -25,31 +29,30 @@ if __name__ == '__main__':
 # the App Engine WSGI application server.
 ## Author: Mike Taylor
 
-apptoken = 'cf02308c614e080009c7fb0c4b19ff8a'
 
 ###
 # oAuth2 Authentication Login
 ##
 @app.route('/')
 def index():
-    data = getdata('')
-    return render_template('output.html', data=data)
-    #return flask.redirect(flask.url_for('login'))
-
-'''
     import flask
     import httplib2
     from oauth2client import client
     from apiclient import discovery
+    data = getdata('')
+    #return flask.redirect(flask.url_for('login'))
+
     if 'credentials' not in flask.session:
         return flask.redirect(flask.url_for('oauth2callback'))
+        #return flask.redirect('https://www.getpostman.com/oauth2/callback')
     credentials = client.OAuth2Credentials.from_json(flask.session['credentials'])
     if credentials.access_token_expired:
         return flask.redirect(flask.url_for('oauth2callback'))
+        #return flask.redirect('https://www.getpostman.com/oauth2/callback')
     else:
         http_auth = credentials.authorize(httplib2.Http())
-        drive_service = discovery.build('drive', 'v2', http_auth)
-        files = drive_service.files().list().execute()
+        apiservice = discovery.build('cloud-platform', 'v2', http_auth)
+        files = apiservice.files().list().execute()
         return json.dumps(files)
 
 
@@ -60,9 +63,9 @@ def oauth2callback():
     from oauth2client import client
     flow = client.flow_from_clientsecrets(
         'client_secrets.json',
-        scope='https://www.googleapis.com/auth/drive.metadata.readonly',
-        redirect_uri=flask.url_for('oauth2callback', _external=True),
-        include_granted_scopes=True)
+        scope='https://www.googleapis.com/auth/cloud-platform.read-only',
+        redirect_uri=flask.url_for('oauth2callback', _external=True))#,
+        #include_granted_scopes=True)
     if 'code' not in flask.request.args:
         auth_uri = flow.step1_get_authorize_url()
         return flask.redirect(auth_uri)
@@ -71,7 +74,11 @@ def oauth2callback():
         credentials = flow.step2_exchange(auth_code)
         flask.session['credentials'] = credentials.to_json()
         return flask.redirect(flask.url_for('index'))
-'''
+
+@app.route('/login')
+def login():
+    return render_template('login.html', data={})
+
 
 ###
 # Users
@@ -135,11 +142,11 @@ def search():
         if request.method == "POST" | request.method == "GET":
             if action != '':
                 if action == "general":
-                    return render_template('output.html', data=getdata(''))
+                    return render_template('output.html', data=getdata('')), 200, {'Content-Type': 'application/json; charset=utf-8'} 
                 elif action == "advanced":
-                    return render_template('output.html', data=getdata(''))
+                    return render_template('output.html', data=getdata('')), 200, {'Content-Type': 'application/json; charset=utf-8'}
                 elif action == "directory":
-                    return render_template('output.html', data=getdata(''))
+                    return render_template('output.html', data=getdata('')), 200, {'Content-Type': 'application/json; charset=utf-8'}
             else:
                 if user_id != None:
                     data = user_update()
@@ -165,16 +172,17 @@ def contacts(user_id=None, contact_id=None):
     Returns:
         contact list
     Args:
-        POST   /contacts/?action=get        - v1 admin general contact search
+        GET    /contacts/?action=get        - v1 admin general contact search
         GET    /users/<user_id>/contacts    - v2 admin user contact list
             TODO: resolve this route with client
-        GET    /users/<user_id>             - v2 admin user edit (SEE: Users above)
+        GET    /contacts/?action=getcontacts  - v1 single user/contact
+        GET    /users/<user_id>             - v2 single user/contact
 
     Returns:
         status message
     Args:
-        POST   /contacts/?action=invite     - v1 user invitation
-        POST   /users/<user_id>/contacts    - v2 admin user contact list
+        POST   /contacts/?action=invite     - v1 send user invitation
+        POST   /users/<user_id>/contacts    - v2 send user invitation
             TODO: add 'invite' ?
 
         POST   /contacts/?action=remove     - v1 user contact delete

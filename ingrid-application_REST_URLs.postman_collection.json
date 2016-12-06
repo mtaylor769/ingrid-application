@@ -1,0 +1,298 @@
+{
+	"variables": [],
+	"info": {
+		"name": "ingrid-application REST URLs",
+		"_postman_id": "00913732-6a8b-a609-747b-e59ddfc1fe73",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "FindMe v1",
+			"description": "v1 Ingrid Application URLs",
+			"item": [
+				{
+					"name": "v1 User Registration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var responseJSON;",
+									"try {",
+									"    tests[\"Body contains headers\"] = responseBody.has(\"headers\");",
+									"    responseJSON = JSON.parse(responseBody);",
+									"    tests[\"Header contains test parameter sent as part of request header\"] = \"Content-Type\" in responseJSON.headers;",
+									"}",
+									"catch (e) { }"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "https://ingrid-application.appspot.com/user/?action=signup&first_name=Joe&last_name=Blow&email=joe@blow.com&password=pa$$w0rd!&organization=My Company&designation=VP of Technology&location=my location&location_latitude=my latitude&location_longitude=my longitude&profile_picture=url&uid=uid&push_token=push_token&type=type",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v1 user registration"
+					},
+					"response": []
+				},
+				{
+					"name": "v1 User Update",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/user/?action=profile&first_name=Joe&last_name=Blow&email=joe@blow.com&password=pa$$w0rd!&organization=My Company&designation=VP of Technology&location=my location&location_latitude=my latitude&location_longitude=my longitude&profile_picture=url&uid=uid&push_token=push_token&type=type",
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v1 user update"
+					},
+					"response": []
+				},
+				{
+					"name": "v1 General Search",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/search?action=general&keyword=keyword",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v1 general search"
+					},
+					"response": []
+				},
+				{
+					"name": "v1 Advanced Search",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/search?action=advanced&keyword=keyword",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v1 advanced search"
+					},
+					"response": []
+				},
+				{
+					"name": "v1 Directory (Group) Search",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/search?action=directory&keyword=keyword",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v1 diretctory (group) search"
+					},
+					"response": []
+				},
+				{
+					"name": "v1 Admin General Contact Search",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/contacts/?action=get",
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v1 admin general contact search"
+					},
+					"response": []
+				},
+				{
+					"name": "v1 User Contact Delete",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/contacts/?action=remove",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v1 user contact delete"
+					},
+					"response": []
+				},
+				{
+					"name": "v1 Send User Invitation",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/contacts/?action=invite?user_id=<user_id>",
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v1 send user invitation"
+					},
+					"response": []
+				},
+				{
+					"name": "v1 Invitation List",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/notifications/?action=invitations",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v1 invitation list"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "FindMe v2",
+			"description": "v2 Ingrid Application URLs",
+			"item": [
+				{
+					"name": "v2 User List",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/users",
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v2 user list"
+					},
+					"response": []
+				},
+				{
+					"name": "v2 User Update",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/users/<user_id>",
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v2 user update"
+					},
+					"response": []
+				},
+				{
+					"name": "v2 Admin User Edit",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/users/<user_id>",
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v2 admin user edit "
+					},
+					"response": []
+				},
+				{
+					"name": "v2 Admin User Contact List",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/users/[user_id]/contacts",
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v2 admin user contact list"
+					},
+					"response": []
+				},
+				{
+					"name": "v2 Directories (Group) List",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/directories",
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v2 directories (group) list"
+					},
+					"response": []
+				},
+				{
+					"name": "v2 User Contact Delete",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/users/<user_id>/contacts/<contact_id>",
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v2 user contact delete"
+					},
+					"response": []
+				},
+				{
+					"name": "v2 Send User Invitation",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/users/<user_id>/contacts",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v2 send user invitation"
+					},
+					"response": []
+				},
+				{
+					"name": "v2 Invitation List",
+					"request": {
+						"url": "https://ingrid-application.appspot.com/invitations",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"description": "v2 invitation list"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Entry Point (/)",
+			"request": {
+				"url": "https://ingrid-application.appspot.com/",
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"description": "Entry point"
+			},
+			"response": []
+		}
+	]
+}
