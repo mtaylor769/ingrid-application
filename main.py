@@ -1,8 +1,9 @@
-from flask import Flask, request, render_template
+from flask import Flask, jsonify, request, render_template
 import mysql.connector
 from mysql.connector import errorcode
 import uuid
-import time
+import datetime
+import decimal
 import json
 import httplib2
 '''
@@ -52,9 +53,8 @@ def index():
     else:
         http_auth = credentials.authorize(httplib2.Http())
         apiservice = discovery.build('appengine', 'v1', http_auth)
-        #.files().list().execute()
-        print apiservice
-        return json.dumps("")
+        #print apiservice
+        return jsondumps(apiservice)
 
 
 @app.route('/oauth2callback')
@@ -66,12 +66,11 @@ def oauth2callback():
         'client_secrets.json',
         scope=[
             #'https://www.googleapis.com/auth/drive.appdata',
-            #'https://www.googleapis.com/auth/cloud-platform',
-            'https://www.googleapis.com/discovery/v1/appengine.getRest',
-            'https://www.googleapis.com/auth/plus.login'
+            'https://www.googleapis.com/auth/cloud-platform'
+            #'https://www.googleapis.com/auth/plus.login',
+            #'https://www.googleapis.com/discovery/v1/appengine'
         ],
-        redirect_uri=flask.url_for('oauth2callback', _external=True))#,
-        #include_granted_scopes=True)
+        redirect_uri=flask.url_for('oauth2callback', _external=True))
     if 'code' not in flask.request.args:
         auth_uri = flow.step1_get_authorize_url()
         return flask.redirect(auth_uri)
@@ -91,9 +90,14 @@ def login():
 ##
 @app.route('/user/', methods=["GET"])
 @app.route('/users/', methods=["GET"]) # List of users
-@app.route('/users/<int:user_id>')
+@app.route('/users/<user_id>', methods=["GET"])
 def userprofile(user_id=None):
     """
+    Returns:
+        user_profile list
+    Args:
+        GET /users/
+
     Returns:
         user_profile
     Args:
@@ -113,8 +117,8 @@ def userprofile(user_id=None):
                     return render_template('output.html', data=user_update())
             else:
                 if user_id != None:
-                    data = get_user(user_id)
-                else: data = status_message('fail', "no user_id")
+                    data = get_all_users()
+                else: data = status_message('fail', "no user_id (v1)")
             return render_template('output.html', data=data)
         else:
             return request.method + " requested"
@@ -379,10 +383,9 @@ def valid_login(username, password):
     return True
 
 def log_the_user_in(username):
-    expiration = time.time() + 60 * 60 * 24
+    expiration = datetime.time() + 60 * 60 * 24
     username = username
     retarray = {
-        'auth_token': apptoken,
         'expires': expiration
     }
     return retarray
@@ -409,18 +412,26 @@ def user_signup():
     }
     return retarray
 
+###
+# User query functions
+##
+Q_users = "SELECT * FROM findme.tbl_users"
+Q_limit = " LIMIT 10"
+
 def user_update():
     return status_message("success", "user_id: 1 updated")
 
 def status_message(status=None, message=None):
     return {'status': status, 'message': message}
 
-def get_user(user_id=None):
-    if user_id is None:
-        return
+def get_all_users():
+    return getdata(Q_users)
+
+def get_user(uid=None):
+    if uid is None:
+        return status_message("fail", "user_id not passed")
     else:
-        q = "SELECT * FROM findme.tbl_users WHERE id='" + user_id +"'"
-        return getdata(q)
+        return getdata(Q_users + " WHERE `id`='" + uid + "'")
 
 ##
 # MySQL Connector and query function
@@ -430,34 +441,55 @@ DBCONFIG = {
     'user': 'dbuser',
     'password': 'MySQL123!',
     'database': 'findme',
-    'raise_on_warnings': True
+    'raise_on_warnings': False
 }
 
-def getdata(sql=None):
+def getdata(sql="SHOW TABLES", format='json'):
     msg = ''
     try:
         cnx = mysql.connector.connect(**DBCONFIG)
         cursor = cnx.cursor(buffered=True)
-        msg = "The Database is connected."
         if sql is None:
             sql = "SHOW TABLES"
-        print "\nQuery: " + sql
         cursor.execute(sql)
-        msg += "\nQuery Result:"
-        print cursor
-        for (i, j) in cursor:
-            msg += "\n{} {}".format(i, j)
+        query_result = [dict(line) \
+            for line in [zip([column[0] \
+                for column in cursor.description], row) \
+                    for row in cursor.fetchall() \
+            ] \
+        ]
+        '''
+        numrows = cursor.rowcount
+        for x in xrange(0, numrows):
+            result = cursor.fetchone()
+            d = [ dict(line) for line in [zip([ column[0] for column in cursor.description], result)
+            msg += json.dump(result, d)
+            if x != numrows:
+                msg += ","
+        '''
         cursor.close()
-        msg += "\nThe Database cursor is closed."
+        if format == 'json':
+            return jsondumps(query_result)
+        else:
+            return query_result
     except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            msg += "\nSomething is wrong with your user name or password"
+            msg += "\nYour Database username or password is not correct."
         elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            msg += "\nDatabase does not exist"
+            msg += "\nDatabase '" + DBCONFIG['database'] + "' does not exist."
         else:
             msg += "\n General DB Error: " + err.msg
     else:
         cnx.close()
-        msg += "\nThe Database is disconnected."
-    return msg
+    return msg.replace('&#34;', '')
 
+def jsondumps(myobj):
+    return json.dumps(myobj, indent=4, skipkeys=True, ensure_ascii=False, sort_keys=True, separators=(',', ':'), default=jsonfilter)
+
+def jsonfilter(myobj):
+    if type(myobj) is dict:
+        return dict(myobj)
+    if type(myobj) is datetime.date or type(myobj) is datetime.datetime:
+        return myobj.isoformat()
+    if type(myobj) is decimal.Decimal:
+        return float(myobj)
