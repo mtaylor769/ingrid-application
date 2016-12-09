@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, request, render_template, logging
 import mysql.connector
 from mysql.connector import errorcode
 import uuid
@@ -25,11 +25,66 @@ app.config['GOOGLE_APPLICATION_CREDENTIALS'] = "./ingrid-application-f7e95ac782c
 if __name__ == '__main__':
     app.secret_key = str(uuid.uuid4())
     app.debug = True
-
+log = app.logger
 # Note: We don't need to call run() since our application is embedded within
 # the App Engine WSGI application server.
 ## Author: Mike Taylor
 
+###
+# Oauth2 authentication through Google
+##
+@app.route('/')
+def index():
+    import flask
+    import httplib2
+    from oauth2client import client
+    from apiclient import discovery
+    data = getdata('')
+    #return flask.redirect(flask.url_for('login'))
+
+    if 'credentials' not in flask.session:
+        return flask.redirect(flask.url_for('oauth2callback'))
+        #return flask.redirect('https://www.getpostman.com/oauth2/callback')
+    credentials = client.OAuth2Credentials.from_json(flask.session['credentials'])
+    if credentials.access_token_expired:
+        return flask.redirect(flask.url_for('oauth2callback'))
+        #return flask.redirect('https://www.getpostman.com/oauth2/callback')
+    else:
+        http_auth = credentials.authorize(httplib2.Http())
+        apiservice = discovery.build('appengine', 'v1', http_auth)
+        #print apiservice
+        nxt = flask.session['request_uri'] or 'users'
+        app.logger
+        return flask.redirect(flask.url_for(nxt))
+        #return "Services: " + jsondumps(apiservice)
+
+
+@app.route('/oauth2callback')
+def oauth2callback():
+    import flask
+    import httplib2
+    from oauth2client import client
+    flow = client.flow_from_clientsecrets(
+        'client_secrets.json',
+        scope=[
+            #'https://www.googleapis.com/auth/drive.appdata',
+            'https://www.googleapis.com/auth/cloud-platform',
+            'https://www.googleapis.com/auth/plus.login'
+        ],
+        redirect_uri=flask.url_for('oauth2callback', _external=True))
+    if 'code' not in flask.request.args:
+        auth_uri = flow.step1_get_authorize_url()
+        return flask.redirect(auth_uri)
+    else:
+        auth_code = flask.request.args.get('code')
+        credentials = flow.step2_exchange(auth_code)
+        flask.session['credentials'] = credentials.to_json()
+        return flask.redirect(flask.url_for('index'))
+
+def auth(url_for):
+    import flask
+    flask.session['request_uri'] = request.referrer or url_for
+    return flask.redirect(flask.url_for('index'))
 
 ###
 # Users
@@ -37,7 +92,7 @@ if __name__ == '__main__':
 @app.route('/user', methods=["POST"])
 @app.route('/users/')
 @app.route('/users/<int:user_id>')
-def userprofile(user_id=None):
+def users(user_id=None):
     """
     Returns:
         users list
@@ -53,6 +108,7 @@ def userprofile(user_id=None):
         GET    /users/<user_id>         - v2 get user profile
         PATCH  /users/<user_id>         - v2 update user profile
     """
+    auth('users')
     error = None
     try:
         if request.method == "POST":
@@ -61,18 +117,16 @@ def userprofile(user_id=None):
                 if action == "signup":
                     return render_template('output.html', data=user_signup())
                 elif action == "profile":
-                    if user_id == None:
-                        user_id = request.args.get('user_id', '')
+                    uid = user_id or request.args.get('user_id', '')
                     return render_template('output.html', data=user_update(user_id))
         elif request.method == "PATCH":
             return user_update(user_id)
         else:
-            if user_id is None:
-                user_id = request.args.get('user_id', '')
-            if user_id != None:
-                data = get_user(user_id)
-            else:
+            uid = user_id or request.args.get('user_id', '')
+            if uid is None or uid is '':
                 data = get_all_users()
+            else:
+                data = get_user(uid)
         return render_template('output.html', data=data)
     except KeyError as identifier:
         error = "FormError: " + identifier.message
@@ -97,6 +151,7 @@ def search():
         POST   /search?action=directory     - v1 general group search
         GET    /directories                 - v2 group list
     """
+    auth('search')
     error = None
     try:
         action = request.args.get('action', 'search')
@@ -160,6 +215,7 @@ def contacts(user_id=None, contact_id=None):
         POST   /contacts?action=unblock     - v1 unblock user contact
         POST   /users/<user_id>/contacts/<contact_id>/unblock  - v2 unblock user contact
     """
+    auth('contacts')
     error = None
     try:
         if request.method == "POST":
@@ -246,6 +302,7 @@ def groups(group_id=None, user_id=None):
             TODO: add owner_id ?
 
     """
+    auth('groups')
     error = None
     try:
         if request.method == "POST":
@@ -505,59 +562,6 @@ def update_group(gid, mid):
 
 def change_group_owner(uid):
     return
-###
-# Oauth2 authentication through Google
-##
-@app.route('/')
-def index():
-    import flask
-    import httplib2
-    from oauth2client import client
-    from apiclient import discovery
-    data = getdata('')
-    #return flask.redirect(flask.url_for('login'))
-
-    if 'credentials' not in flask.session:
-        return flask.redirect(flask.url_for('oauth2callback'))
-        #return flask.redirect('https://www.getpostman.com/oauth2/callback')
-    credentials = client.OAuth2Credentials.from_json(flask.session['credentials'])
-    if credentials.access_token_expired:
-        return flask.redirect(flask.url_for('oauth2callback'))
-        #return flask.redirect('https://www.getpostman.com/oauth2/callback')
-    else:
-        http_auth = credentials.authorize(httplib2.Http())
-        apiservice = discovery.build('appengine', 'v1', http_auth)
-        #print apiservice
-        return jsondumps(apiservice)
-
-
-@app.route('/oauth2callback')
-def oauth2callback():
-    import flask
-    import httplib2
-    from oauth2client import client
-    flow = client.flow_from_clientsecrets(
-        'client_secrets.json',
-        scope=[
-            #'https://www.googleapis.com/auth/drive.appdata',
-            'https://www.googleapis.com/auth/cloud-platform'
-            #'https://www.googleapis.com/auth/plus.login',
-            #'https://www.googleapis.com/discovery/v1/appengine'
-        ],
-        redirect_uri=flask.url_for('oauth2callback', _external=True))
-    if 'code' not in flask.request.args:
-        auth_uri = flow.step1_get_authorize_url()
-        return flask.redirect(auth_uri)
-    else:
-        auth_code = flask.request.args.get('code')
-        credentials = flow.step2_exchange(auth_code)
-        flask.session['credentials'] = credentials.to_json()
-        return flask.redirect(flask.url_for('index'))
-
-@app.route('/login')
-def login():
-    return render_template('login.html', data={})
-
 ##
 # MySQL Connector and query function
 ##
@@ -576,6 +580,7 @@ def getdata(sql="SHOW TABLES", format='json'):
         cursor = cnx.cursor(buffered=True)
         if sql is None:
             sql = "SHOW TABLES"
+        print(sql)
         cursor.execute(sql)
         query_result = [dict(line) \
             for line in [zip([column[0] \
@@ -606,7 +611,7 @@ def getdata(sql="SHOW TABLES", format='json'):
             msg += "\n General DB Error: " + err.msg
     else:
         cnx.close()
-    return msg.replace('&#34;', '')
+    return msg
 
 ###
 # set specific json.dumps behavior and filter
