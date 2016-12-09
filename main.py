@@ -39,7 +39,6 @@ def index():
     import httplib2
     from oauth2client import client
     from apiclient import discovery
-    data = getdata('')
     #return flask.redirect(flask.url_for('login'))
 
     if 'credentials' not in flask.session:
