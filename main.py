@@ -54,7 +54,6 @@ def index():
         apiservice = discovery.build('appengine', 'v1', http_auth)
         #print apiservice
         nxt = flask.session['request_uri'] or 'users'
-        app.logger
         return flask.redirect(flask.url_for(nxt))
         #return "Services: " + jsondumps(apiservice)
 
