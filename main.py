@@ -170,15 +170,15 @@ def contacts(user_id=None, contact_id=None):
                 elif action == "remove":
                     if user_id == None:
                         user_id = request.args.get('user_id', '')
-                        user_id = request.args.get('contact_id', '')
+                        contact_id = request.args.get('contact_id', '')
                     return render_template('output.html',\
                         data=delete_user_contact(user_id, contact_id))
                 elif action == "block":
-                    if user_id == None:
+                    if user_id is None:
                         user_id = request.args.get('user_id', '')
                     return render_template('output.html', data=user_update(user_id))
                 elif action == "unblock":
-                    if user_id == None:
+                    if user_id is None:
                         user_id = request.args.get('user_id', '')
                     return render_template('output.html', data=user_update(user_id))
         elif request.method == "PATCH":
@@ -246,8 +246,39 @@ def groups(group_id=None, user_id=None):
             TODO: add owner_id ?
 
     """
-    retarray = {}
-    return render_template('list.html', data=retarray)
+    error = None
+    try:
+        if request.method == "POST":
+            action = request.args.get('action', '')
+            if action != '':
+                if action == "create":
+                    return render_template('output.html', data=group_create())
+                elif action == "update":
+                    if user_id == None:
+                        user_id = request.args.get('user_id', '')
+                        contact_id = request.args.get('contact_id', '')
+                    return render_template('output.html',\
+                        data=update_group(group_id, user_id))
+                elif action == "changeowner":
+                    if group_id is None:
+                        user_id = request.args.get('user_id', '')
+                    return render_template('output.html', data=change_group_owner(user_id))
+        elif request.method == "PATCH":
+            return user_update(user_id)
+        elif request.method == "DELETE":
+            return delete_user_contact(user_id, contact_id)
+        else:
+            if user_id is None:
+                user_id = request.args.get('user_id', '')
+            if user_id != None:
+                data = get_user_contacts(user_id)
+            else:
+                data = get_all_groups()
+        return render_template('output.html', data=data)
+    except KeyError as identifier:
+        error = "FormError: " + identifier.message
+        return render_template('error.html', error=error)
+
 
 ##
 #  Directories
@@ -458,6 +489,22 @@ def delete_user_contact(uid, cid):
 def Q_WHERE_user_contact(uid, cid):
     return " WHERE `user_id`='" + uid + "' `contact_id`='" + cid + "'"
 
+###
+# Groups query functions
+##
+Q_groups = "SELECT * FROM findme.tbl_groups"
+
+def get_all_groups():
+    return getdata(Q_groups)
+
+def group_create():
+    return
+
+def update_group(gid, mid):
+    return
+
+def change_group_owner(uid):
+    return
 ###
 # Oauth2 authentication through Google
 ##
