@@ -171,7 +171,8 @@ def contacts(user_id=None, contact_id=None):
                     if user_id == None:
                         user_id = request.args.get('user_id', '')
                         user_id = request.args.get('contact_id', '')
-                    return render_template('output.html', data=contacts_remove(user_id, contact_id))
+                    return render_template('output.html',\
+                        data=delete_user_contact(user_id, contact_id))
                 elif action == "block":
                     if user_id == None:
                         user_id = request.args.get('user_id', '')
@@ -426,6 +427,7 @@ def get_user(uid=None):
 # User Contacts query functions
 ##
 Q_contacts = "SELECT * FROM findme.tbl_contacts"
+
 def get_all_user_contacts():
     return getdata(Q_contacts)
 
@@ -435,18 +437,26 @@ def get_user_contacts(uid):
 def contacts_invite(uid):
     return
 
-def contacts_remove(uid, cid):
-    return
-
 def contacts_block(uid, cid):
-    return
+    Q_block_user_contact = "UPDATE findme.tbl_contacts SET (`status`) VALUES (0)"\
+        + Q_WHERE_user_contact(uid, cid)
+    stat = getdata(Q_block_user_contact)
+    return stat
 
 def contacts_unblock(uid, cid):
+    Q_unblock_user_contact = "UPDATE findme.tbl_contacts SET (`status`) VALUES (1)"\
+        + Q_WHERE_user_contact(uid, cid)
+    stat = getdata(Q_unblock_user_contact)
     return
 
-def delete_user_contact(user_id, contact_id):
-    return getdata("DELETE from findme.tbl_contacts WHERE `user_id`='"\
-        + user_id + "' `contact_id`='" + contact_id + "'")
+def delete_user_contact(uid, cid):
+    Q_delete_user_contact = "DELETE from findme.tbl_contacts"\
+        + Q_WHERE_user_contact(uid, cid)
+    stat = getdata(Q_delete_user_contact, format='')
+    return stat
+
+def Q_WHERE_user_contact(uid, cid):
+    return " WHERE `user_id`='" + uid + "' `contact_id`='" + cid + "'"
 
 ###
 # Oauth2 authentication through Google
