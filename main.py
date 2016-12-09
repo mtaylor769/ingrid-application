@@ -32,69 +32,15 @@ if __name__ == '__main__':
 
 
 ###
-# oAuth2 Authentication Login
-##
-@app.route('/')
-def index():
-    import flask
-    import httplib2
-    from oauth2client import client
-    from apiclient import discovery
-    data = getdata('')
-    #return flask.redirect(flask.url_for('login'))
-
-    if 'credentials' not in flask.session:
-        return flask.redirect(flask.url_for('oauth2callback'))
-        #return flask.redirect('https://www.getpostman.com/oauth2/callback')
-    credentials = client.OAuth2Credentials.from_json(flask.session['credentials'])
-    if credentials.access_token_expired:
-        return flask.redirect(flask.url_for('oauth2callback'))
-        #return flask.redirect('https://www.getpostman.com/oauth2/callback')
-    else:
-        http_auth = credentials.authorize(httplib2.Http())
-        apiservice = discovery.build('appengine', 'v1', http_auth)
-        #print apiservice
-        return jsondumps(apiservice)
-
-
-@app.route('/oauth2callback')
-def oauth2callback():
-    import flask
-    import httplib2
-    from oauth2client import client
-    flow = client.flow_from_clientsecrets(
-        'client_secrets.json',
-        scope=[
-            #'https://www.googleapis.com/auth/drive.appdata',
-            'https://www.googleapis.com/auth/cloud-platform'
-            #'https://www.googleapis.com/auth/plus.login',
-            #'https://www.googleapis.com/discovery/v1/appengine'
-        ],
-        redirect_uri=flask.url_for('oauth2callback', _external=True))
-    if 'code' not in flask.request.args:
-        auth_uri = flow.step1_get_authorize_url()
-        return flask.redirect(auth_uri)
-    else:
-        auth_code = flask.request.args.get('code')
-        credentials = flow.step2_exchange(auth_code)
-        flask.session['credentials'] = credentials.to_json()
-        return flask.redirect(flask.url_for('index'))
-
-@app.route('/login')
-def login():
-    return render_template('login.html', data={})
-
-
-###
 # Users
 ##
-@app.route('/user/', methods=["GET"])
-@app.route('/users/', methods=["GET"]) # List of users
-@app.route('/users/<user_id>', methods=["GET"])
+@app.route('/user', methods=["POST"])
+@app.route('/users/')
+@app.route('/users/<int:user_id>')
 def userprofile(user_id=None):
     """
     Returns:
-        user_profile list
+        users list
     Args:
         GET /users/
 
@@ -102,26 +48,32 @@ def userprofile(user_id=None):
         user_profile
     Args:
         POST   /user?action=signup      - v1 user registration
-        POST   /user?action=profile     - v1 user update
-        PATCH  /users/<user_id>         - v2 user update
+        POST   /user?action=profile     - v1 update user profile
+        GET    /user?user_id=<user_id>  - v1 get user profile
+        GET    /users/<user_id>         - v2 get user profile
+        PATCH  /users/<user_id>         - v2 update user profile
     """
     error = None
     try:
-        action = request.args.get('action', '')
-        user_id = request.args.get('user_id', '')
-        if request.method == "GET":
+        if request.method == "POST":
+            action = request.args.get('action', '')
             if action != '':
                 if action == "signup":
                     return render_template('output.html', data=user_signup())
                 elif action == "profile":
-                    return render_template('output.html', data=user_update())
-            else:
-                if user_id != None:
-                    data = get_all_users()
-                else: data = status_message('fail', "no user_id (v1)")
-            return render_template('output.html', data=data)
+                    if user_id == None:
+                        user_id = request.args.get('user_id', '')
+                    return render_template('output.html', data=user_update(user_id))
+        elif request.method == "PATCH":
+            return user_update(user_id)
         else:
-            return request.method + " requested"
+            if user_id is None:
+                user_id = request.args.get('user_id', '')
+            if user_id != None:
+                data = get_user(user_id)
+            else:
+                data = get_all_users()
+        return render_template('output.html', data=data)
     except KeyError as identifier:
         error = "FormError: " + identifier.message
         return render_template('error.html', error=error)
@@ -152,14 +104,17 @@ def search():
         if request.method == "POST" | request.method == "GET":
             if action != '':
                 if action == "general":
-                    return render_template('output.html', data=getdata('')), 200, {'Content-Type': 'application/json; charset=utf-8'} 
+                    return render_template('output.html', data=getdata('')),\
+                        200, {'Content-Type': 'application/json; charset=utf-8'}
                 elif action == "advanced":
-                    return render_template('output.html', data=getdata('')), 200, {'Content-Type': 'application/json; charset=utf-8'}
+                    return render_template('output.html', data=getdata('')),\
+                        200, {'Content-Type': 'application/json; charset=utf-8'}
                 elif action == "directory":
-                    return render_template('output.html', data=getdata('')), 200, {'Content-Type': 'application/json; charset=utf-8'}
+                    return render_template('output.html', data=getdata('')),\
+                        200, {'Content-Type': 'application/json; charset=utf-8'}
             else:
                 if user_id != None:
-                    data = user_update()
+                    data = user_update(user_id)
                 else: data = status_message('fail', "no user_id")
             return render_template('output.html', data=data)
         else:
@@ -172,7 +127,8 @@ def search():
 ###
 #  Contacts
 ##
-@app.route('/contacts')
+@app.route('/contacts/')
+@app.route('/contacts/<int:user_id>')
 @app.route('/users/<int:user_id>/contacts/')
 @app.route('/users/<int:user_id>/contacts/<int:contact_id>')
 @app.route('/users/<int:user_id>/contacts/<int:contact_id>/block')
@@ -204,14 +160,47 @@ def contacts(user_id=None, contact_id=None):
         POST   /contacts?action=unblock     - v1 unblock user contact
         POST   /users/<user_id>/contacts/<contact_id>/unblock  - v2 unblock user contact
     """
-    retarray = {}
-    return render_template('list.html', data=retarray)
+    error = None
+    try:
+        if request.method == "POST":
+            action = request.args.get('action', '')
+            if action != '':
+                if action == "invite":
+                    return render_template('output.html', data=contacts_invite(contact_id))
+                elif action == "remove":
+                    if user_id == None:
+                        user_id = request.args.get('user_id', '')
+                        user_id = request.args.get('contact_id', '')
+                    return render_template('output.html', data=contacts_remove(user_id, contact_id))
+                elif action == "block":
+                    if user_id == None:
+                        user_id = request.args.get('user_id', '')
+                    return render_template('output.html', data=user_update(user_id))
+                elif action == "unblock":
+                    if user_id == None:
+                        user_id = request.args.get('user_id', '')
+                    return render_template('output.html', data=user_update(user_id))
+        elif request.method == "PATCH":
+            return user_update(user_id)
+        elif request.method == "DELETE":
+            return delete_user_contact(user_id, contact_id)
+        else:
+            if user_id is None:
+                user_id = request.args.get('user_id', '')
+            if user_id != None:
+                data = get_user_contacts(user_id)
+            else:
+                data = get_all_user_contacts()
+        return render_template('output.html', data=data)
+    except KeyError as identifier:
+        error = "FormError: " + identifier.message
+        return render_template('error.html', error=error)
 
 ##
 #  Groups
 ##
 @app.route('/group')
-@app.route('/groups')
+@app.route('/groups/')
 @app.route('/groups/<int:group_id>')
 @app.route('/groups/<int:group_id>/members')
 @app.route('/groups/<int:group_id>/members/<int:user_id>')
@@ -265,7 +254,7 @@ def groups(group_id=None, user_id=None):
 @app.route('/directories')
 @app.route('/directories/')
 @app.route('/directories/<directory_id>/members')
-def directories(directory_id=None, user_id=None):
+def directories(directory_id=None,):
     """
     Returns:
         directory list
@@ -418,8 +407,8 @@ def user_signup():
 Q_users = "SELECT * FROM findme.tbl_users"
 Q_limit = " LIMIT 10"
 
-def user_update():
-    return status_message("success", "user_id: 1 updated")
+def user_update(user_id):
+    return status_message("success", "user_id: " + user_id + " updated.")
 
 def status_message(status=None, message=None):
     return {'status': status, 'message': message}
@@ -431,7 +420,86 @@ def get_user(uid=None):
     if uid is None:
         return status_message("fail", "user_id not passed")
     else:
-        return getdata(Q_users + " WHERE `id`='" + uid + "'")
+        return getdata(Q_users + " WHERE `id`='" + str(uid) + "'")
+
+###
+# User Contacts query functions
+##
+Q_contacts = "SELECT * FROM findme.tbl_contacts"
+def get_all_user_contacts():
+    return getdata(Q_contacts)
+
+def get_user_contacts(uid):
+    return getdata(Q_contacts + " WHERE `user_id`='" + str(uid) + "'")
+
+def contacts_invite(uid):
+    return
+
+def contacts_remove(uid, cid):
+    return
+
+def contacts_block(uid, cid):
+    return
+
+def contacts_unblock(uid, cid):
+    return
+
+def delete_user_contact(user_id, contact_id):
+    return getdata("DELETE from findme.tbl_contacts WHERE `user_id`='"\
+        + user_id + "' `contact_id`='" + contact_id + "'")
+
+###
+# Oauth2 authentication through Google
+##
+@app.route('/')
+def index():
+    import flask
+    import httplib2
+    from oauth2client import client
+    from apiclient import discovery
+    data = getdata('')
+    #return flask.redirect(flask.url_for('login'))
+
+    if 'credentials' not in flask.session:
+        return flask.redirect(flask.url_for('oauth2callback'))
+        #return flask.redirect('https://www.getpostman.com/oauth2/callback')
+    credentials = client.OAuth2Credentials.from_json(flask.session['credentials'])
+    if credentials.access_token_expired:
+        return flask.redirect(flask.url_for('oauth2callback'))
+        #return flask.redirect('https://www.getpostman.com/oauth2/callback')
+    else:
+        http_auth = credentials.authorize(httplib2.Http())
+        apiservice = discovery.build('appengine', 'v1', http_auth)
+        #print apiservice
+        return jsondumps(apiservice)
+
+
+@app.route('/oauth2callback')
+def oauth2callback():
+    import flask
+    import httplib2
+    from oauth2client import client
+    flow = client.flow_from_clientsecrets(
+        'client_secrets.json',
+        scope=[
+            #'https://www.googleapis.com/auth/drive.appdata',
+            'https://www.googleapis.com/auth/cloud-platform'
+            #'https://www.googleapis.com/auth/plus.login',
+            #'https://www.googleapis.com/discovery/v1/appengine'
+        ],
+        redirect_uri=flask.url_for('oauth2callback', _external=True))
+    if 'code' not in flask.request.args:
+        auth_uri = flow.step1_get_authorize_url()
+        return flask.redirect(auth_uri)
+    else:
+        auth_code = flask.request.args.get('code')
+        credentials = flow.step2_exchange(auth_code)
+        flask.session['credentials'] = credentials.to_json()
+        return flask.redirect(flask.url_for('index'))
+
+@app.route('/login')
+def login():
+    return render_template('login.html', data={})
 
 ##
 # MySQL Connector and query function
@@ -483,8 +551,12 @@ def getdata(sql="SHOW TABLES", format='json'):
         cnx.close()
     return msg.replace('&#34;', '')
 
+###
+# set specific json.dumps behavior and filter
+##
 def jsondumps(myobj):
-    return json.dumps(myobj, indent=4, skipkeys=True, ensure_ascii=False, sort_keys=True, separators=(',', ':'), default=jsonfilter)
+    return json.dumps(myobj, indent=4, skipkeys=True, ensure_ascii=False, sort_keys=True,\
+        separators=(',', ':'), default=jsonfilter)
 
 def jsonfilter(myobj):
     if type(myobj) is dict:
