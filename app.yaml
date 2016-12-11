@@ -1,12 +1,16 @@
+application: ingrid-application
 runtime: python27
 api_version: 1
 threadsafe: yes
 default_expiration: "1d 1h"
 
+inbound_services:
+- warmup
+
 env_variables:
   #appurl: 'https://storage.googleapis.com/omega-messenger-133010.appspot.com/profile/'
   #appurlmail: 'http://omega-messenger-133010.appspot.com/'
-  token: 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
+  apptoken: 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
 
 libraries:
 - name: jinja2

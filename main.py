@@ -39,8 +39,6 @@ def index():
     import httplib2
     from oauth2client import client
     from apiclient import discovery
-    #return flask.redirect(flask.url_for('login'))
-
     if 'credentials' not in flask.session:
         return flask.redirect(flask.url_for('oauth2callback'))
         #return flask.redirect('https://www.getpostman.com/oauth2/callback')
@@ -445,11 +443,6 @@ def page_not_found(e):
     return 'Sorry, nothing at this URL.', 404
 
 ##
-# User Defined Handler Functions
-##
-
-
-##
 # Login page handler Functions
 ##
 def valid_login(username, password):
@@ -577,7 +570,7 @@ def getdata(sql="SHOW TABLES", format='json'):
         cursor = cnx.cursor(buffered=True)
         if sql is None:
             sql = "SHOW TABLES"
-        print(sql)
+        print sql
         cursor.execute(sql)
         query_result = [dict(line) \
             for line in [zip([column[0] \
