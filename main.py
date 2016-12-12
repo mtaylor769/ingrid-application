@@ -119,7 +119,9 @@ def users(user_id=None):
                 if action == "signup":
                     return render_template('output.html', data=user_signup())
                 elif action == "profile":
-                    uid = user_id or request.args.get('user_id', '')
+                    uid = request.args.get('user_id', '')
+                    if uid is None or uid is '':
+                        uid = user_id
                     return render_template('output.html', data=user_update(uid))
         elif request.method == "PATCH":
             return user_update(user_id)
@@ -569,7 +571,6 @@ DBCONFIG={
   'database': 'findme',
   'raise_on_warnings': True
 }
-print DBCONFIG
 
 def getdata(sql="SHOW TABLES", format='json'):
     msg = ''
