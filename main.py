@@ -567,7 +567,7 @@ def getdata(sql="SHOW TABLES", format='json'):
     msg = ''
     try:
         cnx = mysql.connector.connect(**DBCONFIG)
-        cursor = cnx.cursor(buffered=True)
+        cursor = cnx.cursor()
         if sql is None:
             sql = "SHOW TABLES"
         print sql
