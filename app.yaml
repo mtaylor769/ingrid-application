@@ -2,12 +2,12 @@ runtime: python27
 api_version: 1
 threadsafe: yes
 default_expiration: "1d 1h"
+SERVER_NAME: 'ingrid-application.appspot.com'
 
 env_variables:
-  #appurl: 'https://storage.googleapis.com/omega-messenger-133010.appspot.com/profile/'
-  #appurlmail: 'http://omega-messenger-133010.appspot.com/'
+  appurl: 'https://storage.googleapis.com/omega-messenger-133010.appspot.com/profile/'
+  appurlmail: 'http://omega-messenger-133010.appspot.com/'
   apptoken: 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
-
 libraries:
 - name: jinja2
   version: "2.6"

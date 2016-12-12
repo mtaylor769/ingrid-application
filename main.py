@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, logging
+from flask import Flask, request, render_template, logging, jsonify
 import mysql.connector
 from mysql.connector import errorcode
 import uuid
@@ -6,6 +6,9 @@ import datetime
 import decimal
 import json
 import httplib2
+import apiclient
+#apiclient.urlfetch.set_default_fetch_deadline(60)
+from googleapiclient import http, sample_tools
 '''
 from googleapiclient.discovery import build
 from oauth2client.client import GoogleCredentials
@@ -13,15 +16,19 @@ from oauth2client.client import GoogleCredentials
 credentials = GoogleCredentials.get_application_default()
 service = build('compute', 'v1', credentials=credentials)
 '''
+
 PROJECT = 'ingrid-application'
 ZONE = 'us-central1'
-#apptoken = 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
-app.secret_key = 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
+app.config['TRAP_HTTP_EXCEPTIONS'] = True
+app.config['TRAP_BAD_REQUEST_ERRORS'] = True
+app.config['SECRET_KEY'] = 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
+
 app.config['GOOGLE_LOGIN_REDIRECT_SCHEME'] = "https"
 app.config['GOOGLE_APPLICATION_CREDENTIALS'] = "./ingrid-application-f7e95ac782cc.json"
+
 if __name__ == '__main__':
     app.secret_key = str(uuid.uuid4())
     app.debug = True
@@ -555,13 +562,14 @@ def change_group_owner(uid):
 ##
 # MySQL Connector and query function
 ##
-DBCONFIG = {
-    'host': '104.197.146.7',
-    'user': 'dbuser',
-    'password': 'MySQL123!',
-    'database': 'findme',
-    'raise_on_warnings': False
+DBCONFIG={
+  'host': '127.0.0.1',
+  'user': 'dbuser',
+  'password': 'MySQL123!',
+  'database': 'findme',
+  'raise_on_warnings': True
 }
+print DBCONFIG
 
 def getdata(sql="SHOW TABLES", format='json'):
     msg = ''
