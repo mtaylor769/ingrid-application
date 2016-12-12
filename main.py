@@ -556,7 +556,7 @@ def change_group_owner(uid):
 # MySQL Connector and query function
 ##
 DBCONFIG = {
-    'host': '127.0.0.1',
+    'host': '104.197.146.7',
     'user': 'dbuser',
     'password': 'MySQL123!',
     'database': 'findme',

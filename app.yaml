@@ -3,9 +3,6 @@ api_version: 1
 threadsafe: yes
 default_expiration: "1d 1h"
 
-inbound_services:
-- warmup
-
 env_variables:
   #appurl: 'https://storage.googleapis.com/omega-messenger-133010.appspot.com/profile/'
   #appurlmail: 'http://omega-messenger-133010.appspot.com/'
