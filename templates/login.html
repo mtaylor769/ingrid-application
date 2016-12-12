@@ -1,0 +1,15 @@
+<div >
+  {% if error %}
+    <div class="alert alert-danger alert-dismissable fade in">
+      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+      <strong>Error:</strong> {{ error }}
+    </div>
+  {% endif %}
+
+  <div class="title" id="title_div">Login Page</div>
+    {% if first_name %}
+        <h1>Hello {{ first_name }}!</h1>
+    {% else %}
+        <h1>Please Log In</h1>
+    {% endif %}
+</div>
