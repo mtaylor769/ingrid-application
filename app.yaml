@@ -2,7 +2,6 @@ runtime: python27
 api_version: 1
 threadsafe: yes
 default_expiration: "1d 1h"
-SERVER_NAME: 'ingrid-application.appspot.com'
 
 env_variables:
   appurl: 'https://storage.googleapis.com/omega-messenger-133010.appspot.com/profile/'
