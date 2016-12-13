@@ -1,6 +1,4 @@
 from flask import Flask, request, render_template, logging, jsonify
-import mysql.connector
-from mysql.connector import errorcode
 import uuid
 import datetime
 import decimal
@@ -539,7 +537,7 @@ def contacts_unblock(uid, cid):
 def delete_user_contact(uid, cid):
     Q_delete_user_contact = "DELETE from findme.tbl_contacts"\
         + Q_WHERE_user_contact(uid, cid)
-    stat = getdata(Q_delete_user_contact, format='')
+    stat = getdata(Q_delete_user_contact, fmt='')
     return stat
 
 def Q_WHERE_user_contact(uid, cid):
@@ -572,7 +570,9 @@ DBCONFIG={
   'raise_on_warnings': False
 }
 
-def getdata(sql="SHOW TABLES", format='json'):
+def getdata(sql="SHOW TABLES", fmt='json'):
+    import mysql.connector
+    from mysql.connector import errorcode
     msg = ''
     try:
         cnx = mysql.connector.connect(**DBCONFIG)
@@ -597,7 +597,7 @@ def getdata(sql="SHOW TABLES", format='json'):
                 msg += ","
         '''
         cursor.close()
-        if format == 'json':
+        if fmt == 'json':
             return jsondumps(query_result)
         else:
             return query_result
