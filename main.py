@@ -563,6 +563,7 @@ def change_group_owner(uid):
 ##
 DBCONFIG={
     'host': '127.0.0.1',
+    'port': '3306',
     'user': 'dbuser',
     'password': 'MySQL123!',
     'database': 'findme'
