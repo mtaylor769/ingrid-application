@@ -571,11 +571,14 @@ DBCONFIG={
 }
 
 def getdata(sql="SHOW TABLES", fmt='json'):
-    import mysql.connector
-    from mysql.connector import errorcode
+    from mysql.connector import connection, errorcode
     msg = ''
     try:
-        cnx = mysql.connector.connect(**DBCONFIG)
+        cnx = connection.MySQLConnection(
+            pool_name="ingrid-application-pool",
+            pool_size=3,
+            **DBCONFIG
+        )
         cursor = cnx.cursor()
         if sql is None:
             sql = "SHOW TABLES"
