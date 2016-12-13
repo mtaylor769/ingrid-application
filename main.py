@@ -571,7 +571,6 @@ DBCONFIG={
 }
 
 def getdata(sql="SHOW TABLES", fmt='json'):
-    import mysql.connector
     from mysql.connector import connection, errorcode, Error
     msg = ''
     try:
