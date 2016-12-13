@@ -569,7 +569,7 @@ DBCONFIG={
   'user': 'dbuser',
   'password': 'MySQL123!',
   'database': 'findme',
-  'raise_on_warnings': True
+  'raise_on_warnings': False
 }
 
 def getdata(sql="SHOW TABLES", format='json'):
