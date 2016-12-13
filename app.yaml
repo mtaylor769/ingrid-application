@@ -22,6 +22,7 @@ handlers:
   secure: never
 builtins:
 - remote_api: on
+- name: on
 
 beta_settings:
       cloud_sql_instances: "ingrid-application-mysql57"

@@ -3,10 +3,9 @@ import uuid
 import datetime
 import decimal
 import json
-import httplib2
 import apiclient
-#apiclient.urlfetch.set_default_fetch_deadline(60)
-from googleapiclient import http, sample_tools
+from google.appengine.api import urlfetch
+urlfetch.set_default_fetch_deadline(200)
 '''
 from googleapiclient.discovery import build
 from oauth2client.client import GoogleCredentials
