@@ -571,7 +571,8 @@ DBCONFIG={
 }
 
 def getdata(sql="SHOW TABLES", fmt='json'):
-    from mysql.connector import connection, errorcode
+    import mysql.connector
+    from mysql.connector import connection, errorcode, Error
     msg = ''
     try:
         cnx = connection.MySQLConnection(
@@ -604,7 +605,7 @@ def getdata(sql="SHOW TABLES", fmt='json'):
             return jsondumps(query_result)
         else:
             return query_result
-    except mysql.connector.Error as err:
+    except Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             msg += "\nYour Database username or password is not correct."
         elif err.errno == errorcode.ER_BAD_DB_ERROR:
