@@ -563,11 +563,13 @@ def change_group_owner(uid):
 # MySQL Connector and query function
 ##
 DBCONFIG={
-  'host': '127.0.0.1',
-  'user': 'dbuser',
-  'password': 'MySQL123!',
-  'database': 'findme',
-  'raise_on_warnings': False
+    'host': '127.0.0.1',
+    'user': 'dbuser',
+    'password': 'MySQL123!',
+    'database': 'findme',
+    'raise_on_warnings': False,
+    'pool_name': "ingrid-application-pool",
+    'pool_size': 3
 }
 
 def getdata(sql="SHOW TABLES", fmt='json'):
@@ -575,11 +577,7 @@ def getdata(sql="SHOW TABLES", fmt='json'):
     from mysql.connector import connection, errorcode, Error
     msg = ''
     try:
-        cnx = connection.MySQLConnection(
-            pool_name="ingrid-application-pool",
-            pool_size=3,
-            **DBCONFIG
-        )
+        cnx = connection.MySQLConnection(**DBCONFIG)
         cursor = cnx.cursor()
         if sql is None:
             sql = "SHOW TABLES"
