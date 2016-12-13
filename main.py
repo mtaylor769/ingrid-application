@@ -567,9 +567,7 @@ DBCONFIG={
     'user': 'dbuser',
     'password': 'MySQL123!',
     'database': 'findme',
-    'raise_on_warnings': False,
-    'pool_name': "ingrid-application-pool",
-    'pool_size': 3
+    'raise_on_warnings': False
 }
 
 def getdata(sql="SHOW TABLES", fmt='json'):
