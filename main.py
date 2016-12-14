@@ -1,14 +1,11 @@
 from flask import Flask, request, render_template, logging, jsonify
-import mysql.connector
-from mysql.connector import errorcode
 import uuid
 import datetime
 import decimal
 import json
-import httplib2
 import apiclient
-#apiclient.urlfetch.set_default_fetch_deadline(60)
-from googleapiclient import http, sample_tools
+from google.appengine.api import urlfetch
+urlfetch.set_default_fetch_deadline(200)
 '''
 from googleapiclient.discovery import build
 from oauth2client.client import GoogleCredentials
@@ -119,8 +116,10 @@ def users(user_id=None):
                 if action == "signup":
                     return render_template('output.html', data=user_signup())
                 elif action == "profile":
-                    uid = user_id or request.args.get('user_id', '')
-                    return render_template('output.html', data=user_update(user_id))
+                    uid = request.args.get('user_id', '')
+                    if uid is None or uid is '':
+                        uid = user_id
+                    return render_template('output.html', data=user_update(uid))
         elif request.method == "PATCH":
             return user_update(user_id)
         else:
@@ -537,7 +536,7 @@ def contacts_unblock(uid, cid):
 def delete_user_contact(uid, cid):
     Q_delete_user_contact = "DELETE from findme.tbl_contacts"\
         + Q_WHERE_user_contact(uid, cid)
-    stat = getdata(Q_delete_user_contact, format='')
+    stat = getdata(Q_delete_user_contact, fmt='')
     return stat
 
 def Q_WHERE_user_contact(uid, cid):
@@ -563,18 +562,18 @@ def change_group_owner(uid):
 # MySQL Connector and query function
 ##
 DBCONFIG={
-  'host': '127.0.0.1',
-  'user': 'dbuser',
-  'password': 'MySQL123!',
-  'database': 'findme',
-  'raise_on_warnings': True
+    'host': '127.0.0.1',
+    'port': '3306',
+    'user': 'dbuser',
+    'password': 'MySQL123!',
+    'database': 'findme'
 }
-print DBCONFIG
 
-def getdata(sql="SHOW TABLES", format='json'):
+def getdata(sql="SHOW TABLES", fmt='json'):
+    from mysql.connector import connection, errorcode, Error
     msg = ''
     try:
-        cnx = mysql.connector.connect(**DBCONFIG)
+        cnx = connection.MySQLConnection(**DBCONFIG)
         cursor = cnx.cursor()
         if sql is None:
             sql = "SHOW TABLES"
@@ -596,11 +595,11 @@ def getdata(sql="SHOW TABLES", format='json'):
                 msg += ","
         '''
         cursor.close()
-        if format == 'json':
+        if fmt == 'json':
             return jsondumps(query_result)
         else:
             return query_result
-    except mysql.connector.Error as err:
+    except Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             msg += "\nYour Database username or password is not correct."
         elif err.errno == errorcode.ER_BAD_DB_ERROR:
