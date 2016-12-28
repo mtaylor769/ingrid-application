@@ -1,9 +1,7 @@
 from flask import Flask, request, render_template, logging, jsonify
 import uuid
-import datetime
-import decimal
-import json
 import apiclient
+import ingridapp
 from google.appengine.api import urlfetch
 urlfetch.set_default_fetch_deadline(200)
 '''
@@ -114,20 +112,20 @@ def users(user_id=None):
             action = request.args.get('action', '')
             if action != '':
                 if action == "signup":
-                    return render_template('output.html', data=user_signup())
+                    return render_template('output.html', data=ingridapp.user_signup(request))
                 elif action == "profile":
                     uid = request.args.get('user_id', '')
                     if uid is None or uid is '':
                         uid = user_id
-                    return render_template('output.html', data=user_update(uid))
+                    return render_template('output.html', data=ingridapp.user_update(uid))
         elif request.method == "PATCH":
-            return user_update(user_id)
+            return ingridapp.user_update(user_id)
         else:
             uid = user_id or request.args.get('user_id', '')
             if uid is None or uid is '':
-                data = get_all_users()
+                data = ingridapp.get_all_users()
             else:
-                data = get_user(uid)
+                data = ingridapp.get_user(uid)
         return render_template('output.html', data=data)
     except KeyError as identifier:
         error = "FormError: " + identifier.message
@@ -160,18 +158,18 @@ def search():
         if request.method == "POST" | request.method == "GET":
             if action != '':
                 if action == "general":
-                    return render_template('output.html', data=getdata('')),\
+                    return render_template('output.html', data=ingridapp.getdata('')),\
                         200, {'Content-Type': 'application/json; charset=utf-8'}
                 elif action == "advanced":
-                    return render_template('output.html', data=getdata('')),\
+                    return render_template('output.html', data=ingridapp.getdata('')),\
                         200, {'Content-Type': 'application/json; charset=utf-8'}
                 elif action == "directory":
-                    return render_template('output.html', data=getdata('')),\
+                    return render_template('output.html', data=ingridapp.getdata('')),\
                         200, {'Content-Type': 'application/json; charset=utf-8'}
             else:
                 if user_id != None:
-                    data = user_update(user_id)
-                else: data = status_message('fail', "no user_id")
+                    data = ingridapp.user_update(user_id)
+                else: data = ingridapp.status_message('fail', "no user_id")
             return render_template('output.html', data=data)
         else:
             return request.method + " requested"
@@ -223,32 +221,32 @@ def contacts(user_id=None, contact_id=None):
             action = request.args.get('action', '')
             if action != '':
                 if action == "invite":
-                    return render_template('output.html', data=contacts_invite(contact_id))
+                    return render_template('output.html', data=ingridapp.contacts_invite(contact_id))
                 elif action == "remove":
                     if user_id == None:
                         user_id = request.args.get('user_id', '')
                         contact_id = request.args.get('contact_id', '')
                     return render_template('output.html',\
-                        data=delete_user_contact(user_id, contact_id))
+                        data=ingridapp.delete_user_contact(user_id, contact_id))
                 elif action == "block":
                     if user_id is None:
                         user_id = request.args.get('user_id', '')
-                    return render_template('output.html', data=user_update(user_id))
+                    return render_template('output.html', data=ingridapp.user_update(user_id))
                 elif action == "unblock":
                     if user_id is None:
                         user_id = request.args.get('user_id', '')
-                    return render_template('output.html', data=user_update(user_id))
+                    return render_template('output.html', data=ingridapp.user_update(user_id))
         elif request.method == "PATCH":
-            return user_update(user_id)
+            return ingridapp.user_update(user_id)
         elif request.method == "DELETE":
-            return delete_user_contact(user_id, contact_id)
+            return ingridapp.delete_user_contact(user_id, contact_id)
         else:
             if user_id is None:
                 user_id = request.args.get('user_id', '')
             if user_id != None:
-                data = get_user_contacts(user_id)
+                data = ingridapp.get_user_contacts(user_id)
             else:
-                data = get_all_user_contacts()
+                data = ingridapp.get_all_user_contacts()
         return render_template('output.html', data=data)
     except KeyError as identifier:
         error = "FormError: " + identifier.message
@@ -310,28 +308,28 @@ def groups(group_id=None, user_id=None):
             action = request.args.get('action', '')
             if action != '':
                 if action == "create":
-                    return render_template('output.html', data=group_create())
+                    return render_template('output.html', data=ingridapp.group_create())
                 elif action == "update":
                     if user_id == None:
                         user_id = request.args.get('user_id', '')
                         contact_id = request.args.get('contact_id', '')
                     return render_template('output.html',\
-                        data=update_group(group_id, user_id))
+                        data=ingridapp.update_group(group_id, user_id))
                 elif action == "changeowner":
                     if group_id is None:
                         user_id = request.args.get('user_id', '')
-                    return render_template('output.html', data=change_group_owner(user_id))
+                    return render_template('output.html', data=ingridapp.change_group_owner(user_id))
         elif request.method == "PATCH":
-            return user_update(user_id)
+            return ingridapp.user_update(user_id)
         elif request.method == "DELETE":
-            return delete_user_contact(user_id, contact_id)
+            return ingridapp.delete_user_contact(user_id, contact_id)
         else:
             if user_id is None:
                 user_id = request.args.get('user_id', '')
             if user_id != None:
-                data = get_user_contacts(user_id)
+                data = ingridapp.get_user_contacts(user_id)
             else:
-                data = get_all_groups()
+                data = ingridapp.get_all_groups()
         return render_template('output.html', data=data)
     except KeyError as identifier:
         error = "FormError: " + identifier.message
@@ -457,6 +455,7 @@ def valid_login(username, password):
     return True
 
 def log_the_user_in(username):
+    import datetime
     expiration = datetime.time() + 60 * 60 * 24
     username = username
     retarray = {
@@ -464,163 +463,3 @@ def log_the_user_in(username):
     }
     return retarray
 
-def user_signup():
-    retarray = {
-        'app_action': 'user_signup',
-        'id': request.args.get('id', 'dafault_id'),
-        'user_id': request.args.get('user_id', 'default_user_id'),
-        'email': request.args.get('email', 'default_email'),
-        'first_name': request.args.get('first_name', 'default_first_name'),
-        'last_name': request.args.get('last_name', 'default_last_name'),
-        'password': request.args.get('password', 'default_password'),
-        'organization': request.args.get('organization', 'default orgainization'),
-        'designation': request.args.get('designation', 'default deignation'),
-        'location_latitude': request.args.get('location_latitude', 'location_latitude'),
-        'location_longitude': request.args.get('location_longitude', 'location_longitude'),
-        'location': [{
-            'lat': request.args.get('location_latitude', 'location_latitude'),
-            'lon': request.args.get('location_longitude', 'location_longitude')
-        }],
-        'profile_picture': request.args.get('profile_picture', ''),
-        'contacts': request.args.get('contacts', '')
-    }
-    return retarray
-
-###
-# User query functions
-##
-Q_users = "SELECT * FROM findme.tbl_users"
-Q_limit = " LIMIT 10"
-
-def user_update(user_id):
-    return status_message("success", "user_id: " + user_id + " updated.")
-
-def status_message(status=None, message=None):
-    return {'status': status, 'message': message}
-
-def get_all_users():
-    return getdata(Q_users)
-
-def get_user(uid=None):
-    if uid is None:
-        return status_message("fail", "user_id not passed")
-    else:
-        return getdata(Q_users + " WHERE `id`='" + str(uid) + "'")
-
-###
-# User Contacts query functions
-##
-Q_contacts = "SELECT * FROM findme.tbl_contacts"
-
-def get_all_user_contacts():
-    return getdata(Q_contacts)
-
-def get_user_contacts(uid):
-    return getdata(Q_contacts + " WHERE `user_id`='" + str(uid) + "'")
-
-def contacts_invite(uid):
-    return
-
-def contacts_block(uid, cid):
-    Q_block_user_contact = "UPDATE findme.tbl_contacts SET (`status`) VALUES (0)"\
-        + Q_WHERE_user_contact(uid, cid)
-    stat = getdata(Q_block_user_contact)
-    return stat
-
-def contacts_unblock(uid, cid):
-    Q_unblock_user_contact = "UPDATE findme.tbl_contacts SET (`status`) VALUES (1)"\
-        + Q_WHERE_user_contact(uid, cid)
-    stat = getdata(Q_unblock_user_contact)
-    return
-
-def delete_user_contact(uid, cid):
-    Q_delete_user_contact = "DELETE from findme.tbl_contacts"\
-        + Q_WHERE_user_contact(uid, cid)
-    stat = getdata(Q_delete_user_contact, fmt='')
-    return stat
-
-def Q_WHERE_user_contact(uid, cid):
-    return " WHERE `user_id`='" + uid + "' `contact_id`='" + cid + "'"
-
-###
-# Groups query functions
-##
-Q_groups = "SELECT * FROM findme.tbl_groups"
-
-def get_all_groups():
-    return getdata(Q_groups)
-
-def group_create():
-    return
-
-def update_group(gid, mid):
-    return
-
-def change_group_owner(uid):
-    return
-##
-# MySQL Connector and query function
-##
-DBCONFIG={
-    'host': '127.0.0.1',
-    'port': '3306',
-    'user': 'dbuser',
-    'password': 'MySQL123!',
-    'database': 'findme'
-}
-
-def getdata(sql="SHOW TABLES", fmt='json'):
-    from mysql.connector import connection, errorcode, Error
-    msg = ''
-    try:
-        cnx = connection.MySQLConnection(**DBCONFIG)
-        cursor = cnx.cursor()
-        if sql is None:
-            sql = "SHOW TABLES"
-        print sql
-        cursor.execute(sql)
-        query_result = [dict(line) \
-            for line in [zip([column[0] \
-                for column in cursor.description], row) \
-                    for row in cursor.fetchall() \
-            ] \
-        ]
-        '''
-        numrows = cursor.rowcount
-        for x in xrange(0, numrows):
-            result = cursor.fetchone()
-            d = [ dict(line) for line in [zip([ column[0] for column in cursor.description], result)
-            msg += json.dump(result, d)
-            if x != numrows:
-                msg += ","
-        '''
-        cursor.close()
-        if fmt == 'json':
-            return jsondumps(query_result)
-        else:
-            return query_result
-    except Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            msg += "\nYour Database username or password is not correct."
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            msg += "\nDatabase '" + DBCONFIG['database'] + "' does not exist."
-        else:
-            msg += "\n General DB Error: " + err.msg
-    else:
-        cnx.close()
-    return msg
-
-###
-# set specific json.dumps behavior and filter
-##
-def jsondumps(myobj):
-    return json.dumps(myobj, indent=4, skipkeys=True, ensure_ascii=False, sort_keys=True,\
-        separators=(',', ':'), default=jsonfilter)
-
-def jsonfilter(myobj):
-    if type(myobj) is dict:
-        return dict(myobj)
-    if type(myobj) is datetime.date or type(myobj) is datetime.datetime:
-        return myobj.isoformat()
-    if type(myobj) is decimal.Decimal:
-        return float(myobj)
