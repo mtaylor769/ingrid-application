@@ -96,6 +96,84 @@ def update_group(gid, mid):
 
 def change_group_owner(uid):
     return
+
+###
+# Search query functions
+##
+def general_search(uid, kword):
+    keyword = addslashes(kword)
+
+    sql = "SELECT id, first_name, last_name, organization, profile_picture FROM tbl_users"
+    # TODO: ADD JOIN FOR PROFILE PICTURE & MUTUAL CONTACTS
+    sql += " where (((first_name like '%"+keyword+"%' or last_name like '%"+keyword+"%')\
+        and find_by_name='1') or organization like '%"+keyword+"%' or user_id like\
+        '%"+keyword+"%' or ((concat_ws(' ',first_name,last_name) like '%"+keyword+"%')\
+        and find_by_name='1')"
+
+    keywords = keyword.split(',')
+    if keywords.length > 0:
+        for keyword in keywords:
+            sql += " or ((first_name like '%"+keyword+"%' or last_name like '%"+keyword+"%')\
+                and find_by_name='1') or organization like '%"+keyword+"%'\
+                or ((user_id like '%"+keyword+"%')\
+                and find_by_userid='1')\
+                or ((concat_ws(' ',first_name,last_name) like '%"+keyword+"%')\
+                and find_by_name='1')"
+    sql += ') and id!='+str(uid)+' and user_status="1"'
+    stat = getdata(sql, fmt='')
+    return stat
+
+def advanced_search(uid, request):
+    firstname = addslashes(request.args.get('firstname'))
+    lastname = addslashes(request.args.get('lastname'))
+    organization = addslashes(request.args.get('company'))
+    location = addslashes(request.args.get('location'))
+    nomi_id = addslashes(request.args.get('nomi_id'))
+
+    sql = "SELECT id, first_name, last_name, organization, profile_picture FROM tbl_users where"
+    # TODO: ADD JOIN FOR & MUTUAL CONTACT connection status
+    query = ''
+
+    if firstname != '':
+        query += " ((first_name='"+firstname+"' or first_name like '%"+firstname+"%')\
+            and find_by_name='1')"
+
+    if lastname != '':
+        if query == "":
+            query += " or"
+        query += " ((first_name='"+lastname+"' or first_name like '%"+lastname+"%')\
+            and or find_by_name='1')"
+
+    if organization != '':
+        if query == "":
+            query += " or"
+        query += " (organization='"+organization+"' or organization like '%"+organization+"%')"
+
+    if location != '':
+        if query == "":
+            query += " or"
+        query += " (location='"+location+"' or location like '%"+location+"%')"
+
+    if nomi_id != '':
+        if query == "":
+            query += " or"
+        query += " ((user_id='"+nomi_id+"' or user_id like '%"+nomi_id+"%')\
+                and find_by_userid='1')"
+
+    query += ' and id!='+str(uid)+' and user_status="1"'
+    stat = getdata(sql+query, fmt='')
+    return stat
+
+def mutual():
+    usersql = "SELECT (case when (user_id = '$user') THEN contact_id ELSE user_id END)\
+        as friend from tbl_contacts where (user_id='$user' or contact_id='$user') and status='1'"
+    userres = getdata(usersql)
+    contactsql = "SELECT (case when (user_id = '$contact') THEN contact_id ELSE user_id END)\
+        as friend from tbl_contacts where (user_id='$contact' or contact_id='$contact') and\
+        status='1'"
+    contactres = getdata(contactsql, fmt='raw')
+    return userres + contactres
+
 ##
 # MySQL Connector and query function
 ##
@@ -149,7 +227,21 @@ def getdata(sql="SHOW TABLES", fmt='json'):
     return msg
 
 ###
-# set specific json.dumps behavior and filter
+# Utility functions
+##
+
+###
+# String functions
+##
+def addslashes(s):
+    '''
+    return a string_escape decoded, stripped (trimmed) string
+    equivalent to "addslashes(trim($_POST['<fieldname>'));" in PHP
+    '''
+    return s.decode('string_escape').strip()
+
+###
+# JSON: set specific json.dumps behavior and filter
 ##
 def jsondumps(myobj):
     return json.dumps(myobj, indent=4, skipkeys=True, ensure_ascii=False, sort_keys=True,\
@@ -162,3 +254,36 @@ def jsonfilter(myobj):
         return myobj.isoformat()
     if type(myobj) is decimal.Decimal:
         return float(myobj)
+
+###
+# GCP recommended connector for Unix Socket preferred, 
+##
+'''
+def connect_to_cloudsql():
+    from google import appengine
+
+    # When deployed to App Engine, the `SERVER_SOFTWARE` environment variable
+    # will be set to 'Google App Engine/version'.
+    if os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine/'):
+        # Connect using the unix socket located at
+        # /cloudsql/cloudsql-connection-name.
+        cloudsql_unix_socket = os.path.join(
+            '/cloudsql', CLOUDSQL_CONNECTION_NAME)
+
+        db = MySQLdb.connect(
+            unix_socket=cloudsql_unix_socket,
+            user=CLOUDSQL_USER,
+            passwd=CLOUDSQL_PASSWORD)
+
+    # If the unix socket is unavailable, then try to connect using TCP. This
+    # will work if you're running a local MySQL server or using the Cloud SQL
+    # proxy, for example:
+    #
+    #   $ cloud_sql_proxy -instances=your-connection-name=tcp:3306
+    #
+    else:
+        db = MySQLdb.connect(
+            host='127.0.0.1', user=CLOUDSQL_USER, passwd=CLOUDSQL_PASSWORD)
+
+    return db
+'''

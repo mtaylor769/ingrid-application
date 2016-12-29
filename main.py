@@ -2,8 +2,8 @@ from flask import Flask, request, render_template, logging, jsonify
 import uuid
 import apiclient
 import ingridapp
-from google.appengine.api import urlfetch
-urlfetch.set_default_fetch_deadline(200)
+#from google.appengine.api import urlfetch
+#urlfetch.set_default_fetch_deadline(200)
 '''
 from googleapiclient.discovery import build
 from oauth2client.client import GoogleCredentials
