@@ -182,7 +182,8 @@ DBCONFIG={
     'port': '3306',
     'user': 'dbuser',
     'password': 'MySQL123!',
-    'database': 'findme'
+    'database': 'findme',
+    'unix_socket': 'cloudsql_unix_socket'
 }
 
 def getdata(sql="SHOW TABLES", fmt='json'):
@@ -262,19 +263,24 @@ def jsonfilter(myobj):
 
 def connect_to_cloudsql():
     import os
+    #import MySQLdb
+    from mysql.connector import connection, errorcode, Error
 
     # When deployed to App Engine, the `SERVER_SOFTWARE` environment variable
     # will be set to 'Google App Engine/version'.
     if os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine/'):
         # Connect using the unix socket located at
         # /cloudsql/cloudsql-connection-name.
-        cloudsql_unix_socket = os.path.join(
-            '/cloudsql', CLOUDSQL_CONNECTION_NAME)
+        CONNECTION_NAME = os.getenv('CLOUDSQL_CONNECTION_NAME', '')
+        DB_USER = os.getenv('CLOUDSQL_USER', '')
+        DB_PASS = os.getenv('CLOUDSQL_PASSWORD', '')
+        cloudsql_unix_socket = os.path.join('/cloudsql', CONNECTION_NAME)
 
-        db = MySQLdb.connect(
+        db = connection.MySQLConnection(
             unix_socket=cloudsql_unix_socket,
-            user=CLOUDSQL_USER,
-            passwd=CLOUDSQL_PASSWORD)
+            user=os.getenv('CLOUDSQL_USER', ''),
+            passwd=os.getenv('CLOUDSQL_PASSWORD', '')
+        )
 
     # If the unix socket is unavailable, then try to connect using TCP. This
     # will work if you're running a local MySQL server or using the Cloud SQL
@@ -283,7 +289,7 @@ def connect_to_cloudsql():
     #   $ cloud_sql_proxy -instances=your-connection-name=tcp:3306
     #
     else:
-        db = MySQLdb.connect(
-            host='127.0.0.1', user=CLOUDSQL_USER, passwd=CLOUDSQL_PASSWORD)
+        db = connection.MySQLConnection(
+            host='127.0.0.1', user=DB_USER, passwd=DB_PASS)
 
     return db
