@@ -189,7 +189,8 @@ def getdata(sql="SHOW TABLES", fmt='json'):
     from mysql.connector import connection, errorcode, Error
     msg = ''
     try:
-        cnx = connection.MySQLConnection(**DBCONFIG)
+        #cnx = connection.MySQLConnection(**DBCONFIG)
+        cnx = connect_to_cloudsql()
         cursor = cnx.cursor()
         if sql is None:
             sql = "SHOW TABLES"
@@ -258,9 +259,9 @@ def jsonfilter(myobj):
 ###
 # GCP recommended connector for Unix Socket preferred, 
 ##
-'''
+
 def connect_to_cloudsql():
-    from google import appengine
+    import os
 
     # When deployed to App Engine, the `SERVER_SOFTWARE` environment variable
     # will be set to 'Google App Engine/version'.
@@ -286,4 +287,3 @@ def connect_to_cloudsql():
             host='127.0.0.1', user=CLOUDSQL_USER, passwd=CLOUDSQL_PASSWORD)
 
     return db
-'''
