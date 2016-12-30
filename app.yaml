@@ -7,7 +7,7 @@ env_variables:
   appurl: 'https://storage.googleapis.com/omega-messenger-133010.appspot.com/profile/'
   appurlmail: 'http://omega-messenger-133010.appspot.com/'
   apptoken: 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
-  CLOUDSQL_CONNECTION_NAME: 'ingrid-appliction-mysql57'
+  CLOUDSQL_CONNECTION_NAME: 'ingrid-application:us-central1:ingrid-application-mysql57'
   CLOUDSQL_USER: 'dbuser'
   CLOUDSQL_PASSWORD: 'MySQL123!'
 libraries:
