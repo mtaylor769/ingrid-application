@@ -318,7 +318,8 @@ def groups(group_id=None, user_id=None):
                 elif action == "changeowner":
                     if group_id is None:
                         user_id = request.args.get('user_id', '')
-                    return render_template('output.html', data=ingridapp.change_group_owner(user_id))
+                    return render_template('output.html',\
+                        data=ingridapp.change_group_owner(user_id))
         elif request.method == "PATCH":
             return ingridapp.user_update(user_id)
         elif request.method == "DELETE":
@@ -435,6 +436,7 @@ def settings(directory_id=None, user_id=None):
             - v1 update settings -deprecated
         PATCH /settings                                    - v2 update settings
     """
+    auth('settings')
     retarray = {}
     return render_template('list.html', data=retarray)
 
@@ -445,21 +447,3 @@ def settings(directory_id=None, user_id=None):
 def page_not_found(e):
     """Return a custom 404 error."""
     return 'Sorry, nothing at this URL.', 404
-
-##
-# Login page handler Functions
-##
-def valid_login(username, password):
-    username = username
-    password = password
-    return True
-
-def log_the_user_in(username):
-    import datetime
-    expiration = datetime.time() + 60 * 60 * 24
-    username = username
-    retarray = {
-        'expires': expiration
-    }
-    return retarray
-

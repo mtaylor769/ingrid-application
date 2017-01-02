@@ -164,6 +164,26 @@ def advanced_search(uid, request):
     stat = getdata(sql+query, fmt='')
     return stat
 
+def group_search(uid, request):
+    pin = addslashes(request.args.get('pin'))
+    user_id = str(uid)
+
+    sql = "SELECT grp.id,group_name,group_picture,owner,member_invite_contact,\
+        password,phone,email,count(mem.id) as members FROM tbl_groups grp\
+        INNER JOIN tbl_group_members mem on grp.id=mem.group_id and mem.status='1'\
+        where grp.pin='"+pin+"'"
+    stat = getdata(sql)
+    return stat
+
+def directory_search(uid, request):
+    name = addslashes(request.args.get('name'))
+    domain = addslashes(request.args.get('domain'))
+    user_id = str(uid)
+
+    sql = "SELECT id,directory_name,domain FROM tbl_directories\
+        where directory_name like '%"+name+"%'"
+    stat = getdata(sql)
+    return stat
 def mutual():
     usersql = "SELECT (case when (user_id = '$user') THEN contact_id ELSE user_id END)\
         as friend from tbl_contacts where (user_id='$user' or contact_id='$user') and status='1'"
