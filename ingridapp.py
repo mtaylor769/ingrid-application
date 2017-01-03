@@ -288,13 +288,13 @@ def connect_to_cloudsql():
 
     # When deployed to App Engine, the `SERVER_SOFTWARE` environment variable
     # will be set to 'Google App Engine/version'.
+    CONNECTION_NAME = os.getenv('CLOUDSQL_CONNECTION_NAME', '')
+    DB_USER = os.getenv('CLOUDSQL_USER', '')
+    DB_PASS = os.getenv('CLOUDSQL_PASSWORD', '')
+    cloudsql_unix_socket = os.path.join('/cloudsql', CONNECTION_NAME)
     if os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine/'):
         # Connect using the unix socket located at
         # /cloudsql/cloudsql-connection-name.
-        CONNECTION_NAME = os.getenv('CLOUDSQL_CONNECTION_NAME', '')
-        DB_USER = os.getenv('CLOUDSQL_USER', '')
-        DB_PASS = os.getenv('CLOUDSQL_PASSWORD', '')
-        cloudsql_unix_socket = os.path.join('/cloudsql', CONNECTION_NAME)
 
         db = connection.MySQLConnection(
             unix_socket=cloudsql_unix_socket,

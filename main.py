@@ -155,16 +155,20 @@ def search():
     try:
         action = request.args.get('action', 'search')
         user_id = request.args.get('user_id', '')
-        if request.method == "POST" | request.method == "GET":
+        method = request.method
+        if method == "POST" | method == "GET":
             if action != '':
                 if action == "general":
-                    return render_template('output.html', data=ingridapp.getdata('')),\
+                    return render_template('output.html',\
+                        data=ingridapp.general_search(user_id, request.args.get('q'))),\
                         200, {'Content-Type': 'application/json; charset=utf-8'}
                 elif action == "advanced":
-                    return render_template('output.html', data=ingridapp.getdata('')),\
+                    return render_template('output.html',\
+                        data=ingridapp.advanced_search(user_id, request)),\
                         200, {'Content-Type': 'application/json; charset=utf-8'}
                 elif action == "directory":
-                    return render_template('output.html', data=ingridapp.getdata('')),\
+                    return render_template('output.html',\
+                        data=ingridapp.directory_search(user_id, request)),\
                         200, {'Content-Type': 'application/json; charset=utf-8'}
             else:
                 if user_id != None:
