@@ -293,7 +293,10 @@ def connect_to_cloudsql():
     DB_PASS = os.getenv("CLOUDSQL_PASSWORD")
     DB_SOCK = os.path.join("/cloudsql", DB_CNXN)
     DB_IPV4 = os.getenv("CLOUDSQL_SERVER_IP4V")
-    if os.getenv('SERVER_SOFTWARE', '').startswith("Google App Engine/"):
+    SV_SOFT = os.getenv('SERVER_SOFTWARE', '')
+    print (SV_SOFT)
+    '''
+    if SV_SOFT.startswith("Google App Engine/"):
         # Connect using the unix socket located at
         # /cloudsql/cloudsql-connection-name.
         db = connection.MySQLConnection(
@@ -301,13 +304,14 @@ def connect_to_cloudsql():
             user=DB_USER,
             passwd=DB_PASS
         )
+    '''
     # If the unix socket is unavailable, then try to connect using TCP. This
     # will work if you're running a local MySQL server or using the Cloud SQL
     # proxy, for example:
     #
     #   $ cloud_sql_proxy -instances=your-connection-name=tcp:3306
     #
-    else:
-        db = connection.MySQLConnection(
-            host=DB_IPV4, user=DB_USER, passwd=DB_PASS)
+    #else:
+    db = connection.MySQLConnection(
+        host=DB_IPV4, user=DB_USER, passwd=DB_PASS)
     return db
