@@ -1,6 +1,7 @@
 import json
 import datetime
 import decimal
+import os
 
 ###
 # User query functions
@@ -203,7 +204,8 @@ DBCONFIG={
     'user': 'dbuser',
     'password': 'MySQL123!',
     'database': 'findme',
-    'unix_socket': 'cloudsql_unix_socket'
+    'unix_socket': os.getenv('CLOUDSQL_CONNECTION_NAME')
+
 }
 
 def getdata(sql="SHOW TABLES", fmt='json'):
@@ -283,25 +285,22 @@ def jsonfilter(myobj):
 
 def connect_to_cloudsql():
     import os
-    #import MySQLdb
     from mysql.connector import connection, errorcode, Error
-
     # When deployed to App Engine, the `SERVER_SOFTWARE` environment variable
     # will be set to 'Google App Engine/version'.
-    CONNECTION_NAME = os.getenv('CLOUDSQL_CONNECTION_NAME', '')
-    DB_USER = os.getenv('CLOUDSQL_USER', '')
-    DB_PASS = os.getenv('CLOUDSQL_PASSWORD', '')
-    cloudsql_unix_socket = os.path.join('/cloudsql', CONNECTION_NAME)
-    if os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine/'):
+    DB_CNXN = os.getenv("CLOUDSQL_CONNECTION_NAME")
+    DB_USER = os.getenv("CLOUDSQL_USER")
+    DB_PASS = os.getenv("CLOUDSQL_PASSWORD")
+    DB_SOCK = os.path.join("/cloudsql", DB_CNXN)
+    DB_IPV4 = os.getenv("CLOUDSQL_SERVER_IP4V")
+    if os.getenv('SERVER_SOFTWARE', '').startswith("Google App Engine/"):
         # Connect using the unix socket located at
         # /cloudsql/cloudsql-connection-name.
-
         db = connection.MySQLConnection(
-            unix_socket=cloudsql_unix_socket,
-            user=os.getenv('CLOUDSQL_USER', ''),
-            passwd=os.getenv('CLOUDSQL_PASSWORD', '')
+            unix_socket=DB_SOCK,
+            user=DB_USER,
+            passwd=DB_PASS
         )
-
     # If the unix socket is unavailable, then try to connect using TCP. This
     # will work if you're running a local MySQL server or using the Cloud SQL
     # proxy, for example:
@@ -310,6 +309,5 @@ def connect_to_cloudsql():
     #
     else:
         db = connection.MySQLConnection(
-            host='127.0.0.1', user=DB_USER, passwd=DB_PASS)
-
+            host=DB_IPV4, user=DB_USER, passwd=DB_PASS)
     return db

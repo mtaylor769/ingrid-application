@@ -7,9 +7,10 @@ env_variables:
   appurl: 'https://storage.googleapis.com/omega-messenger-133010.appspot.com/profile/'
   appurlmail: 'http://omega-messenger-133010.appspot.com/'
   apptoken: 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
-  CLOUDSQL_CONNECTION_NAME: 'ingrid-application:us-central1:ingrid-application-mysql57'
-  CLOUDSQL_USER: 'dbuser'
-  CLOUDSQL_PASSWORD: 'MySQL123!'
+  CLOUDSQL_CONNECTION_NAME: 'ingrid-application:us-central1:ingrid-application-mysql57-instance'
+  CLOUDSQL_USER: "dbuser"
+  CLOUDSQL_PASSWORD: "MySQL123!"
+  CLOUDSQL_SERVER_IP4V: "104.197.138.2"
 libraries:
 - name: jinja2
   version: "2.6"
@@ -27,4 +28,4 @@ builtins:
 - remote_api: on
 
 beta_settings:
-      cloud_sql_instances: "ingrid-application-mysql57"
+      cloud_sql_instances: "ingrid-application:us-central1:ingrid-application-mysql57-instance"
