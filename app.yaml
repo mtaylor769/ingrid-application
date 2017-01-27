@@ -4,8 +4,9 @@ threadsafe: yes
 default_expiration: "1d 1h"
 
 env_variables:
-  appurl: 'https://storage.googleapis.com/omega-messenger-133010.appspot.com/profile/'
-  appurlmail: 'http://omega-messenger-133010.appspot.com/'
+  appurl: 'https://ingrid-application.appspot.com/'
+  #appurl: 'https://storage.googleapis.com/omega-messenger-133010.appspot.com/profile/'
+  #appurlmail: 'http://omega-messenger-133010.appspot.com/'
   apptoken: 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
   CLOUDSQL_CONNECTION_NAME: 'ingrid-application:us-central1:ingrid-application-mysql57-instance'
   CLOUDSQL_USER: "dbuser"

@@ -199,21 +199,20 @@ def mutual():
 # MySQL Connector and query function
 ##
 DBCONFIG={
-    'host': '127.0.0.1',
+    'host': '104.197.138.2',
     'port': '3306',
     'user': 'dbuser',
     'password': 'MySQL123!',
     'database': 'findme',
     'unix_socket': os.getenv('CLOUDSQL_CONNECTION_NAME')
-
 }
 
 def getdata(sql="SHOW TABLES", fmt='json'):
     from mysql.connector import connection, errorcode, Error
     msg = ''
     try:
-        #cnx = connection.MySQLConnection(**DBCONFIG)
-        cnx = connect_to_cloudsql()
+        cnx = connection.MySQLConnection(**DBCONFIG)
+        #cnx = connect_to_cloudsql()
         cursor = cnx.cursor()
         if sql is None:
             sql = "SHOW TABLES"
