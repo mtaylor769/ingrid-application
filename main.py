@@ -1,94 +1,105 @@
-from flask import Flask, request, render_template, logging, jsonify
 import uuid
-import apiclient
 import ingridapp
-#from google.appengine.api import urlfetch
-#urlfetch.set_default_fetch_deadline(200)
-'''
-from googleapiclient.discovery import build
-from oauth2client.client import GoogleCredentials
+import json
+from pprint import pprint
 
-credentials = GoogleCredentials.get_application_default()
-service = build('compute', 'v1', credentials=credentials)
-'''
-
-PROJECT = 'ingrid-application'
-ZONE = 'us-central1'
+import os
+from flask import Flask, request, render_template, url_for, send_from_directory, logging, jsonify
+from flask_swagger import swagger
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['TRAP_HTTP_EXCEPTIONS'] = True
 app.config['TRAP_BAD_REQUEST_ERRORS'] = True
-app.config['SECRET_KEY'] = 'AIzaSyBRrOaEbGsZsX1u-zZZwtv938C3KIHJZ3A'
 
-app.config['GOOGLE_LOGIN_REDIRECT_SCHEME'] = "https"
-app.config['GOOGLE_APPLICATION_CREDENTIALS'] = "./ingrid-application-f7e95ac782cc.json"
 
+# Note: We don't need to call run() since our application is embedded within
+# the App Engine WSGI application server.
 if __name__ == '__main__':
     app.secret_key = str(uuid.uuid4())
     app.debug = True
 log = app.logger
-# Note: We don't need to call run() since our application is embedded within
-# the App Engine WSGI application server.
-## Author: Mike Taylor
 
-###
-# Oauth2 authentication through Google
-##
+@app.route('/docs/<path:path>')
+def docs(path):
+    return send_from_directory('swagger', path)
+
+@app.route('/api-schema')
+def api_schema():
+    return send_from_directory('swagger', 'swagger.example.json', as_attachment=False)
+
+@app.route("/v1/swagger")
+def spec():
+    from urllib import urlopen
+    swag = swagger(app)
+    swag['basePath'] = "/"
+    swag['paths'] = json.loads(urlopen('swagger/swagger.example.json').read().decode('utf-8'))
+    swag['info']['version'] = "1.0"
+    swag['info']['title'] = "FindMe 2.0 API"
+    return jsonify(swag)
+
 @app.route('/')
-def index():
-    import flask
-    import httplib2
-    from oauth2client import client
-    from apiclient import discovery
-    if 'credentials' not in flask.session:
-        return flask.redirect(flask.url_for('oauth2callback'))
-        #return flask.redirect('https://www.getpostman.com/oauth2/callback')
-    credentials = client.OAuth2Credentials.from_json(flask.session['credentials'])
-    if credentials.access_token_expired:
-        return flask.redirect(flask.url_for('oauth2callback'))
-        #return flask.redirect('https://www.getpostman.com/oauth2/callback')
-    else:
-        http_auth = credentials.authorize(httplib2.Http())
-        apiservice = discovery.build('appengine', 'v1', http_auth)
-        #print apiservice
-        return flask.redirect(flask.url_for('users'))
-        #return "Services: " + jsondumps(apiservice)
+def hello():
+    error = None
+    try:
+        data = ingridapp.get_all_users()
+        return render_template('output.html', data=data)
+    except KeyError as identifier:
+        error = "FormError: " + identifier.message
+        return render_template('error.html', error=error)
 
-
-@app.route('/oauth2callback')
-def oauth2callback():
-    import flask
-    import httplib2
-    from oauth2client import client
-    flow = client.flow_from_clientsecrets(
-        'client_secrets.json',
-        scope=[
-            #'https://www.googleapis.com/auth/drive.appdata',
-            'https://www.googleapis.com/auth/cloud-platform',
-            'https://www.googleapis.com/auth/plus.login'
-        ],
-        redirect_uri=flask.url_for('oauth2callback', _external=True))
-    if 'code' not in flask.request.args:
-        auth_uri = flow.step1_get_authorize_url()
-        return flask.redirect(auth_uri)
-    else:
-        auth_code = flask.request.args.get('code')
-        credentials = flow.step2_exchange(auth_code)
-        flask.session['credentials'] = credentials.to_json()
-        return flask.redirect(flask.url_for('index'))
+@app.errorhandler(404)
+def page_not_found(e):
+    """Return a custom 404 error."""
+    return 'Sorry, nothing at this URL.', 404
 
 def auth(url_for):
     import flask
-    flask.session['request_uri'] = request.referrer or url_for
-    return flask.redirect(flask.url_for('index'))
+    #flask.session['request_uri'] = request.referrer or url_for
+    #return flask.redirect(flask.url_for('index'))
+    return True
+
+
+
+def has_no_empty_params(rule):
+    defaults = rule.defaults if rule.defaults is not None else ()
+    arguments = rule.arguments if rule.arguments is not None else ()
+    return len(defaults) >= len(arguments)
+
+@app.route("/site-map")
+def site_map():
+    links = []
+    for rule in app.url_map.iter_rules():
+        # Filter out rules we can't navigate to in a browser
+        # and rules that require parameters
+        if "GET" in rule.methods and has_no_empty_params(rule):
+            url = url_for(rule.endpoint, **(rule.defaults or {}))
+            links.append((url, rule.endpoint))
+    # links is now a list of url, endpoint tuples
+    #return render_template("all_links.html", links=links)
+    return jsonify(links)
+
+    
+###
+# Authorization Token for Headers
+##
+@app.route('/auth-token', methods=["POST"])
+def auth_token():
+    """
+     Returns:
+        authorization token
+    Args:
+        POST   /auth-token - v1 user authorization
+    """
+    return json.loads(str(request))
+
 
 ###
 # Users
 ##
 @app.route('/user', methods=["POST"])
-@app.route('/users/')
-@app.route('/users/<int:user_id>')
+@app.route('/users/', methods=["GET"])
+@app.route('/users/<int:user_id>', methods=["GET"])
 def users(user_id=None):
     """
     Returns:
@@ -314,7 +325,7 @@ def groups(group_id=None, user_id=None):
                 if action == "create":
                     return render_template('output.html', data=ingridapp.group_create())
                 elif action == "update":
-                    if user_id == None:
+                    if user_id is None:
                         user_id = request.args.get('user_id', '')
                         contact_id = request.args.get('contact_id', '')
                     return render_template('output.html',\
@@ -347,7 +358,7 @@ def groups(group_id=None, user_id=None):
 @app.route('/directories')
 @app.route('/directories/')
 @app.route('/directories/<directory_id>/members')
-def directories(directory_id=None,):
+def directories(directory_id=None):
     """
     Returns:
         directory list
@@ -444,10 +455,3 @@ def settings(directory_id=None, user_id=None):
     retarray = {}
     return render_template('list.html', data=retarray)
 
-##
-#  404 NOT FOUND
-##
-@app.errorhandler(404)
-def page_not_found(e):
-    """Return a custom 404 error."""
-    return 'Sorry, nothing at this URL.', 404

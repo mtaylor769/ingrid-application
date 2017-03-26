@@ -195,24 +195,41 @@ def mutual():
     contactres = getdata(contactsql, fmt='raw')
     return userres + contactres
 
+def trylogin(username, password):
+    loginsql = "SELECT * FROM tbl_users where username='"+username+"' and password='"+password+"'"
+    loginres = getdata(loginsql)
+    print loginres
 ##
 # MySQL Connector and query function
 ##
-DBCONFIG={
-    'host': '104.197.138.2',
-    'port': '3306',
-    'user': 'dbuser',
-    'password': 'MySQL123!',
-    'database': 'findme',
-    'unix_socket': os.getenv('CLOUDSQL_CONNECTION_NAME')
+DB_CNXN = os.getenv("CLOUDSQL_CONNECTION_NAME")
+DB_SOCK = os.path.join("/cloudsql", DB_CNXN)
+DB_USER = os.getenv("CLOUDSQL_USER")
+DB_PASS = os.getenv("CLOUDSQL_PASSWORD")
+DB_IPV4 = os.getenv("CLOUDSQL_SERVER_IP4V")
+DB_PORT = os.getenv("CLOUDSQL_SERVER_PORT")
+DB_DBNM = os.getenv("CLOUDSQL_DATABASE")
+SV_SOFT = os.getenv('SERVER_SOFTWARE', '')
+
+
+CLOUDSQL_CONNECTION_NAME = os.environ.get('CLOUDSQL_CONNECTION_NAME')
+CLOUDSQL_USER = os.environ.get('CLOUDSQL_USER')
+CLOUDSQL_PASSWORD = os.environ.get('CLOUDSQL_PASSWORD')
+
+DBCONFIG = {
+    'host': DB_IPV4,
+    #'port': DB_PORT,
+    'user': DB_USER,
+    'password': DB_PASS,
+    'database': DB_DBNM,
+    #'unix_socket': DB_SOCK
 }
 
 def getdata(sql="SHOW TABLES", fmt='json'):
-    from mysql.connector import connection, errorcode, Error
     msg = ''
+    import MySQLdb
     try:
-        cnx = connection.MySQLConnection(**DBCONFIG)
-        #cnx = connect_to_cloudsql()
+        cnx = connect_to_cloudsql()
         cursor = cnx.cursor()
         if sql is None:
             sql = "SHOW TABLES"
@@ -238,13 +255,8 @@ def getdata(sql="SHOW TABLES", fmt='json'):
             return jsondumps(query_result)
         else:
             return query_result
-    except Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            msg += "\nYour Database username or password is not correct."
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            msg += "\nDatabase '" + DBCONFIG['database'] + "' does not exist."
-        else:
-            msg += "\n General DB Error: " + err.msg
+    except MySQLdb.DatabaseError as err:
+        msg += "\n General DB Error: " + err.msg
     else:
         cnx.close()
     return msg
@@ -283,25 +295,20 @@ def jsonfilter(myobj):
 ##
 
 def connect_to_cloudsql():
-    import os
-    from mysql.connector import connection, errorcode, Error
+    import MySQLdb
     # When deployed to App Engine, the `SERVER_SOFTWARE` environment variable
     # will be set to 'Google App Engine/version'.
-    DB_CNXN = os.getenv("CLOUDSQL_CONNECTION_NAME")
-    DB_USER = os.getenv("CLOUDSQL_USER")
-    DB_PASS = os.getenv("CLOUDSQL_PASSWORD")
-    DB_SOCK = os.path.join("/cloudsql", DB_CNXN)
-    DB_IPV4 = os.getenv("CLOUDSQL_SERVER_IP4V")
-    SV_SOFT = os.getenv('SERVER_SOFTWARE', '')
-    print (SV_SOFT)
-    if SV_SOFT.startswith("Google App Engine/"):
+    if os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine/'):
         # Connect using the unix socket located at
         # /cloudsql/cloudsql-connection-name.
-        db = connection.MySQLConnection(
-            unix_socket=DB_SOCK,
-            user=DB_USER,
-            passwd=DB_PASS
-        )
+        cloudsql_unix_socket = os.path.join(
+            '/cloudsql', CLOUDSQL_CONNECTION_NAME)
+
+        db = MySQLdb.connect(
+            unix_socket=cloudsql_unix_socket,
+            user=CLOUDSQL_USER,
+            passwd=CLOUDSQL_PASSWORD)
+
     # If the unix socket is unavailable, then try to connect using TCP. This
     # will work if you're running a local MySQL server or using the Cloud SQL
     # proxy, for example:
@@ -309,6 +316,7 @@ def connect_to_cloudsql():
     #   $ cloud_sql_proxy -instances=your-connection-name=tcp:3306
     #
     else:
-        db = connection.MySQLConnection(
-            host=DB_IPV4, user=DB_USER, passwd=DB_PASS)
+        db = MySQLdb.connect(
+            host='127.0.0.1', user=CLOUDSQL_USER, passwd=CLOUDSQL_PASSWORD)
+
     return db
