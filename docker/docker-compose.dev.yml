@@ -1,0 +1,8 @@
+version: '2'
+services:
+  api:
+    volumes:
+      - .:/app
+  db:
+    volumes:
+      - ../mysql_data:/var/lib/mysql

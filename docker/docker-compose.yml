@@ -1,0 +1,39 @@
+version: '2'
+services:
+  api:
+    container_name: api
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+
+    # depends_on:
+    #   - db
+    # env_file: .env.dev
+    # entrypoint:
+    #   - /bin/bash
+    #   - -c
+    # command:
+    #   - /usr/bin/npm run db:migrate && /usr/bin/npm start
+    ports:
+      - "8080:8080"
+    # environment:
+    #   - SSH_AUTH_SOCK=/ssh-agent
+    volumes:
+      - ../:/app
+    #   - $SSH_AUTH_SOCK:/ssh-agent
+  db:
+    container_name: db
+    build: ./mysql-server
+    environment:
+      MYSQL_DATABASE: test
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_HOST: 0.0.0.0
+      MYSQL_USER: testing
+      MYSQL_PASSWORD: testing
+    ports:
+      - "3306:3306"
+networks:
+  default:
+    external:
+      name: localnet
+
