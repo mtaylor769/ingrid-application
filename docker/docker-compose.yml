@@ -15,11 +15,14 @@ services:
     # command:
     #   - /usr/bin/npm run db:migrate && /usr/bin/npm start
     ports:
+      - "8000:8000"
       - "8080:8080"
+      - "39864:39864"
+      - "43067:43067"
     # environment:
     #   - SSH_AUTH_SOCK=/ssh-agent
-    volumes:
-      - ../:/app
+    # volumes:
+    #   - .:/app
     #   - $SSH_AUTH_SOCK:/ssh-agent
   db:
     container_name: db
