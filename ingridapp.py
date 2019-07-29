@@ -317,6 +317,6 @@ def connect_to_cloudsql():
     #
     else:
         db = MySQLdb.connect(
-            host='wmcp-mysql', port='3306', user=CLOUDSQL_USER, passwd=CLOUDSQL_PASSWORD)
+            host="wmcp-mysql", port=3306, db="findme", user=CLOUDSQL_USER, passwd=CLOUDSQL_PASSWORD)
 
     return db
