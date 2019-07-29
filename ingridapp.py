@@ -256,7 +256,7 @@ def getdata(sql="SHOW TABLES", fmt='json'):
         else:
             return query_result
     except MySQLdb.DatabaseError as err:
-        msg += "\n General DB Error: " + err.msg
+        return err
     else:
         cnx.close()
     return msg
@@ -291,7 +291,7 @@ def jsonfilter(myobj):
         return float(myobj)
 
 ###
-# GCP recommended connector for Unix Socket preferred, 
+# GCP recommended connector for Unix Socket preferred,
 ##
 
 def connect_to_cloudsql():
@@ -317,6 +317,6 @@ def connect_to_cloudsql():
     #
     else:
         db = MySQLdb.connect(
-            host='127.0.0.1', user=CLOUDSQL_USER, passwd=CLOUDSQL_PASSWORD)
+            host='wmcp-mysql', port='3306', user=CLOUDSQL_USER, passwd=CLOUDSQL_PASSWORD)
 
     return db

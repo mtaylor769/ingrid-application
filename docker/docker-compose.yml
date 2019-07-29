@@ -1,13 +1,13 @@
-version: '2'
+version: '3.1'
 services:
   api:
-    container_name: api
+    container_name: wmcp-api
     build:
       context: ../
       dockerfile: ./docker/Dockerfile
-
-    # depends_on:
-    #   - db
+    depends_on:
+      - mysql
+      - adminer
     # env_file: .env.dev
     # entrypoint:
     #   - /bin/bash
@@ -15,26 +15,46 @@ services:
     # command:
     #   - /usr/bin/npm run db:migrate && /usr/bin/npm start
     ports:
-      - "8000:8000"
       - "8080:8080"
-      - "39864:39864"
-      - "43067:43067"
-    # environment:
-    #   - SSH_AUTH_SOCK=/ssh-agent
-    # volumes:
-    #   - .:/app
-    #   - $SSH_AUTH_SOCK:/ssh-agent
-  db:
-    container_name: db
-    build: ./mysql-server
     environment:
-      MYSQL_DATABASE: test
+      - SSH_AUTH_SOCK=/ssh-agent
+    volumes:
+      - ..:/src
+      - $SSH_AUTH_SOCK:/ssh-agent
+  mysql:
+    container_name: wmcp-mysql
+    # image: mysql/mysql-server
+    build:
+      context: ./mysql-server
+      dockerfile: ./Dockerfile
+    restart: always
+    entrypoint: ./docker-entrypoint.sh
+    command:
+      - mysqld
+      - --verbose
+      - --default-authentication-plugin=mysql_native_password
+      - --innodb-use-native-aio=0
+      # - --innodb-buffer-pool-size=20M
+    environment:
+      MYSQL_DATABASE: findme
       MYSQL_ROOT_PASSWORD: root
       MYSQL_ROOT_HOST: 0.0.0.0
-      MYSQL_USER: testing
-      MYSQL_PASSWORD: testing
+      MYSQL_USER: dbuser
+      MYSQL_PASSWORD: MySQL123!
     ports:
-      - "3306:3306"
+      - 3306:3306
+    volumes:
+      - ./mysql-server/data:/var/lib/mysql:rw
+      - ./mysql-server/log:/var/log/mysql:rw
+      - ./mysql-server/tmp:/tmp/mysql:rw
+  adminer:
+    container_name: wmcp-adminer
+    image: adminer
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - 8100:8100
 networks:
   default:
     external:

@@ -4,27 +4,20 @@
 # echo "debconf debconf/frontend select Noninteractive" | debconf-set-selections
 
 # update package list
-sudo apt-get -qq -y update
+sudo apt-get -qq -y update && sudo apt-get -qq -y upgrade
 sudo apt-get -qq -y install --reinstall update-manager-core
 sudo apt-get -qq -y install --install-recommends linux-generic-lts-xenial
 # sudo do-release-upgrade -y
 
 # install some essentials
-sudo apt-get -qq -y install apt-utils g++ build-essential git-core curl bash vim jq apt-transport-https ca-certificates
-
-# # install docker
-# sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-# sudo apt-get update &&
-# sudo apt-get -qq -y --force-yes install docker
-# sudo systemctl enable docker
-
-# install docker compose
+sudo apt-get -qq -y install apt-utils g++ build-essential git-core curl bash vim jq apt-transport-https ca-certificates mysql-client
+# # install docker compose
 wget -qO- https://get.docker.com/ | sh
 
 sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" > docker-compose
 sudo mv docker-compose /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
-
+sudo apt-get -y --force-yes install docker-ce=18.06.1~ce~3-0~ubuntu
 # make docker daemon available to the vagrant user
 sudo gpasswd -a ${USER} docker
 sudo service docker restart
