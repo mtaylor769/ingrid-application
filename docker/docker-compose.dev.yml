@@ -5,4 +5,6 @@ services:
   #     - .:/app
   mysql:
     volumes:
-      - ./mysql-server/data:/var/lib/mysql
+      - ./mysql-server/data:/var/lib/mysql:rw
+      - ./mysql-server/log:/var/log/mysql:rw
+      - ./mysql-server/tmp:/tmp/mysql:rw

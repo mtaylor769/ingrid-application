@@ -7,6 +7,8 @@ import os
 from flask import Flask, request, render_template, url_for, send_from_directory, logging, jsonify
 from flask_swagger import swagger
 
+strict_slashes=False
+
 app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['TRAP_HTTP_EXCEPTIONS'] = True
@@ -79,7 +81,7 @@ def site_map():
     #return render_template("all_links.html", links=links)
     return jsonify(links)
 
-    
+
 ###
 # Authorization Token for Headers
 ##

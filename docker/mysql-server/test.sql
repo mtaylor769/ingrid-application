@@ -34,4 +34,29 @@ CREATE TABLE `tbl_users` (
 
 LOCK TABLES `tbl_users` WRITE;
 INSERT INTO `tbl_users` VALUES ('1', 'mtaylor769', 'mike@whatsmycut.com', 'Mike', 'Taylor', '', 'WMCP', 'Owner', '', '', '');
+INSERT INTO `tbl_users` VALUES ('2', 'user2', 'user@whatsmycut.com', 'Default', 'User', '', 'ACME Co.', 'Employee', '', '', '');
 UNLOCK TABLES;
+
+
+DROP TABLE IF EXISTS `tbl_contacts`;
+CREATE TABLE `tbl_contacts` (
+ `user_id` int NOT NULL DEFAULT 0 COMMENT='Current User ID',
+ `contact_id` int NOT NULL DEFAULT 0 COMMENT='Contact User ID',
+ `status` boolean NOT NULL DEFAULT 'false' COMMENT='True is connected.',
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Stores user contact relationships.';
+
+LOCK TABLES `tbl_contacts` WRITE;
+INSERT INTO `tbl_contacts` VALUES (1, 2, 1);
+UNLOCK TABLES;
+
+DROP TABLE IF EXISTS `tbl_groups`;
+CREATE TABLE `tbl_groups` (
+  `id`
+  `group_name` varchar(255) NOT NULL DEFAULT '' COMMENT 'Group Name',
+  `group_picture`  varchar(255) NOT NULL DEFAULT '' COMMENT 'Group Picture',
+  `owner` varchar(255) NOT NULL DEFAULT '' COMMENT 'Group Owner',
+  `member_invite_contact` varchar(255) NOT NULL DEFAULT '' COMMENT 'Group invitations sent to',
+  `password` varchar(255) NOT NULL DEFAULT '' COMMENT 'Group password',
+  `phone`  varchar(255) NOT NULL DEFAULT '' COMMENT 'Group phone number',
+  `email` varchar(255) NOT NULL DEFAULT '' COMMENT 'Group email',
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Stores Group information';

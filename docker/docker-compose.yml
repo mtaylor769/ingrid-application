@@ -1,13 +1,22 @@
 version: '3.1'
 services:
+  web:
+    container_name: wmcp-web
+    build:
+      context: ../web/
+      dockerfile: ./Dockerfile
+    links:
+      - api
+      - adminer
+    ports:
+      - 8080:8080
   api:
     container_name: wmcp-api
     build:
-      context: ../
-      dockerfile: ./docker/Dockerfile
-    depends_on:
+      context: ../flask/
+      dockerfile: ./Dockerfile
+    links:
       - mysql
-      - adminer
     # env_file: .env.dev
     # entrypoint:
     #   - /bin/bash
@@ -15,7 +24,7 @@ services:
     # command:
     #   - /usr/bin/npm run db:migrate && /usr/bin/npm start
     ports:
-      - "8080:8080"
+      - 8090:8080
     environment:
       - SSH_AUTH_SOCK=/ssh-agent
     volumes:
@@ -25,7 +34,7 @@ services:
     container_name: wmcp-mysql
     # image: mysql/mysql-server
     build:
-      context: ./mysql-server
+      context: ./mysql-server/
       dockerfile: ./Dockerfile
     restart: always
     entrypoint: ./docker-entrypoint.sh
@@ -38,21 +47,15 @@ services:
     environment:
       MYSQL_DATABASE: findme
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_ROOT_HOST: 0.0.0.0
+      # MYSQL_ROOT_HOST: 127.0.0.1
       MYSQL_USER: dbuser
       MYSQL_PASSWORD: MySQL123!
     ports:
       - 3306:3306
-    volumes:
-      - ./mysql-server/data:/var/lib/mysql:rw
-      - ./mysql-server/log:/var/log/mysql:rw
-      - ./mysql-server/tmp:/tmp/mysql:rw
   adminer:
     container_name: wmcp-adminer
     image: adminer
     restart: always
-    depends_on:
-      - mysql
     ports:
       - 8100:8100
 networks:

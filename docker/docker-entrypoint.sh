@@ -11,6 +11,6 @@ pip install --upgrade -r requirements.txt -t lib
 export CLOUDSDK_PYTHON=/usr/bin/python
 apt-get -qq -y install google-cloud-sdk google-cloud-sdk-app-engine-python google-cloud-sdk-app-engine-python-extras
 
-dev_appserver.py . &
-ls -al
+dev_appserver.py .
+#ls -al
 eval "$@"

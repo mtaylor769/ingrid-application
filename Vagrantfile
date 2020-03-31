@@ -13,31 +13,37 @@ Vagrant.configure(2) do |config|
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
   config.vm.box = "ubuntu/trusty64"
-  config.vm.hostname = "wmcp-api"
+  config.vm.hostname = "wmcp.local"
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # opens up the postgres ports
-  config.vm.network :forwarded_port, guest: 8080, host: 8080
-  config.vm.network :forwarded_port, guest: 443, host: 443
+  config.vm.network :forwarded_port, guest: 8080, host: 8080,
+    auto_correct: true, host_ip: "127.0.0.1"
+
+  config.vm.network :forwarded_port, guest: 443, host: 443,
+    auto_correct: true
   # opens up the debug port
-  config.vm.network :forwarded_port, guest: 3306, host: 3306
+  config.vm.network :forwarded_port, guest: 3306, host: 3306,
+    auto_correct: true
   # config.vm.network :forwarded_port, guest: 8025, host: 8025
 
   # open up e2 ports
-  for i in 8000..8100
-    config.vm.network :forwarded_port, guest: i, host: i
+  for i in 8001..8100
+    config.vm.network :forwarded_port, guest: i, host: i,
+    auto_correct: true
   end
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
-  # config.vm.network "private_network", ip: "192.168.33.10"
+  config.vm.network "private_network", ip: "192.168.10.12"
 
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on
   # your network.
   # config.vm.network "public_network"
+  # config.vm.network :public_network, bridge: "en0: Wi-Fi (AirPort)"
 
   # Share an additional folder to the guest VM. The first argument is
   # the path on the host to the actual folder. The second argument is

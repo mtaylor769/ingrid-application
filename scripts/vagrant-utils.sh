@@ -10,7 +10,7 @@ sudo apt-get -qq -y install --install-recommends linux-generic-lts-xenial
 # sudo do-release-upgrade -y
 
 # install some essentials
-sudo apt-get -qq -y install apt-utils g++ build-essential git-core curl bash vim jq apt-transport-https ca-certificates mysql-client
+sudo apt-get -qq -y install apt-utils g++ build-essential git-core curl bash vim jq apt-transport-https ca-certificates mysql-client bridge-utils
 # # install docker compose
 wget -qO- https://get.docker.com/ | sh
 
@@ -27,6 +27,8 @@ sudo add-apt-repository ppa:openjdk-r/ppa &&
 sudo apt-get -qq -y update &&
 sudo apt-get -qq -y install openjdk-8-jdk
 
+# cleanup
+sudo apt-get -qq -y autoremove
 
 # # install unicreds
 # cd /home/vagrant

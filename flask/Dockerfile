@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 RUN apt-get update && apt-get -qq -y upgrade
-RUN apt-get -qq -y install curl vim python2.7 python-dev python-pip python-virtualenv libmysqlclient-dev mysql-client
+RUN apt-get -qq -y install curl vim python3 python-dev python-pip python-virtualenv libmysqlclient-dev mysql-client
 RUN pip install --upgrade pip
 WORKDIR /src
 COPY . ./
@@ -16,8 +16,8 @@ EXPOSE 8080
 # RUN ls -al docker
 #RUN dev_appserver.py .
 #ENV CLOUDSDK_PYTHON /src/env/bin/python
-ENTRYPOINT ["/src/docker/docker-entrypoint.sh"]
+ENTRYPOINT ["/src/flask/docker-entrypoint.sh"]
 
 # run migrations and start app
-# CMD ["dev_appserver.py ."]
+CMD ["/bin/bash/", "-c"]
 
