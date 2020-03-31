@@ -76,4 +76,4 @@ rsa==3.4.2
 six==1.10.0
 uritemplate==3.0.0
 virtualenv==15.1.0
-Werkzeug==0.12
+Werkzeug==0.15.3
