@@ -6,7 +6,7 @@ flask-swagger==0.2.11
 Flask-MySQLdb==0.2.0
 future==0.16.0
 futures==3.0.5
-httplib2==0.13.1
+httplib2==0.18.0
 itsdangerous==1.1.0
 Jinja2==2.10.1
 python-dateutil==1.4.1
