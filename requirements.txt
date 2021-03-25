@@ -71,7 +71,7 @@ pyasn1-modules==0.0.8
 pyparsing==2.2.0
 python-dateutil==2.6.0
 pytz==2016.10
-PyYAML==3.12
+PyYAML==5.4
 rsa==3.4.2
 six==1.10.0
 uritemplate==3.0.0
