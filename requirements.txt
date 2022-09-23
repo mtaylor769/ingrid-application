@@ -65,7 +65,7 @@ proto-google-cloud-spanner-admin-instance-v1==0.15.3
 proto-google-cloud-spanner-v1==0.15.3
 proto-google-cloud-speech-v1beta1==0.15.3
 proto-google-cloud-vision-v1==0.90.3
-protobuf==3.2.0
+protobuf==3.18.3
 pyasn1==0.2.3
 pyasn1-modules==0.0.8
 pyparsing==2.2.0
